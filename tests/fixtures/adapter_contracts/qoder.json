@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "agent": "qoder",
+  "status": "planned",
+  "capabilities": {
+    "instructions": {
+      "mode": "native",
+      "notes": "路线图目标，指令原生复用。"
+    },
+    "skills": {
+      "mode": "unsupported",
+      "notes": "当前路线图不承诺 Skills。"
+    },
+    "mcp": {
+      "mode": "unsupported",
+      "notes": "当前路线图不承诺 MCP。"
+    }
+  },
+  "source_inputs": [
+    "AGENTS.md"
+  ],
+  "managed_outputs": [],
+  "platform_modes": {
+    "linux": ["auto", "copy"],
+    "macos": ["auto", "copy"],
+    "windows": ["copy"]
+  },
+  "contract_cases": []
+}

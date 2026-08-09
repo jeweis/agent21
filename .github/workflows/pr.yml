@@ -1,0 +1,157 @@
+name: PR Gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect validation scope
+    runs-on: ubuntu-latest
+    outputs:
+      code_changed: ${{ steps.scope.outputs.code_changed }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Classify changed paths
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+          elif [[ "${{ github.event.before }}" != "" && "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
+            base="${{ github.event.before }}"
+            head="${{ github.sha }}"
+          else
+            echo "code_changed=true" >> "$GITHUB_OUTPUT"
+            touch changed-files.txt
+            exit 0
+          fi
+
+          # Docs-only changes keep fast feedback while still validating CI config.
+          git diff --name-only "$base" "$head" > changed-files.txt
+          if grep -Ev '^(README\.md|CONTRIBUTING\.md|SECURITY\.md|LICENSE|docs/|specs/|\.github/dependabot\.yml)$' changed-files.txt; then
+            echo "code_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload changed path evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-changed-files
+          path: changed-files.txt
+
+  config:
+    name: Documentation and CI config check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Validate YAML syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; ARGV.each { |file| YAML.load_file(file) }' \
+            .github/workflows/pr.yml \
+            .github/workflows/main.yml \
+            .github/workflows/release.yml \
+            .github/dependabot.yml
+
+      - name: Reject automatic snapshot updates in CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          needle="--snapshot""-update"
+          if grep -R --line-number -- "$needle" .github/workflows; then
+            echo "CI must not update approved snapshots automatically." >&2
+            exit 1
+          fi
+
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
+
+  pr:
+    name: Python ${{ matrix.python-version }} contributor gate
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - config
+    if: needs.changes.outputs.code_changed == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - '3.11'
+          - '3.14'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+
+      - name: Install locked development environment
+        run: uv sync --locked --group dev
+
+      - name: Run PR validation session
+        run: uv run nox -s pr
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-failure-${{ matrix.python-version }}
+          path: |
+            .coverage*
+            coverage.xml
+            htmlcov/
+            junit*.xml
+            pytest*.xml
+            test-results/
+            reports/
+            dist/
+          if-no-files-found: ignore
+
+  docs-only:
+    name: Docs-only PR gate
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - config
+    if: needs.changes.outputs.code_changed == 'false'
+    steps:
+      - name: Confirm reduced scope
+        run: echo "Docs/config-only change; high-cost Python validation skipped by contract."

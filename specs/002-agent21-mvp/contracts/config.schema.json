@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent21 Project Configuration v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "agents", "sync", "sources"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "agents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claude", "codex", "cursor", "opencode", "pi"],
+      "properties": {
+        "claude": {"$ref": "#/$defs/agentSelection"},
+        "codex": {"$ref": "#/$defs/agentSelection"},
+        "cursor": {"$ref": "#/$defs/agentSelection"},
+        "opencode": {"$ref": "#/$defs/agentSelection"},
+        "pi": {"$ref": "#/$defs/agentSelection"}
+      }
+    },
+    "sync": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {"mode": {"enum": ["auto", "copy", "symlink"]}}
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instructions", "skills", "mcp"],
+      "properties": {
+        "instructions": {"$ref": "#/$defs/projectPath"},
+        "skills": {"$ref": "#/$defs/projectPath"},
+        "mcp": {"$ref": "#/$defs/projectPath"}
+      }
+    }
+  },
+  "$defs": {
+    "agentSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {"enabled": {"type": "boolean"}}
+    },
+    "projectPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {"pattern": "^/"},
+          {"pattern": "^[A-Za-z]:"},
+          {"pattern": "(^|/)\\.\\.(/|$)"}
+        ]
+      }
+    }
+  }
+}

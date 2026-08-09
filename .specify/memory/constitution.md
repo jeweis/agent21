@@ -1,50 +1,119 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: template (unratified) → 1.0.0
+- Modified principles: none (initial ratification)
+- Added principles:
+  - I. 单一真源优先
+  - II. 原生优先，适配最小化
+  - III. 确定性、幂等与可恢复同步
+  - IV. 跨工具与跨平台兼容是产品契约
+  - V. 验证优先与最小变更
+  - VI. 本地优先与最小权限
+- Added sections:
+  - Compatibility and Safety Constraints
+  - Development Workflow and Quality Gates
+- Removed sections: none
+- Templates:
+  - ✅ updated: .specify/templates/plan-template.md
+  - ✅ updated: .specify/templates/spec-template.md
+  - ✅ updated: .specify/templates/tasks-template.md
+  - ✅ reviewed: .specify/templates/commands/ (directory not present)
+  - ✅ reviewed: AGENTS.md (already aligned; no change required)
+- Follow-up TODOs: none
+-->
+# Agent21 Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. 单一真源优先
+项目级 AI 配置必须以 `AGENTS.md`、`.agents/config.yaml`、
+`.agents/skills/` 和 `.mcp.json` 为权威来源。适配器生成的文件、符号链接、
+缓存和 manifest 只能由权威来源派生，不得被视为可独立维护的第二真源。
+同一事实不得要求团队在多个工具专用文件中重复编辑；发生冲突时，权威来源必须胜出，
+`agent21 doctor` 必须能够指出漂移及其修复方式。
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+理由：Agent21 的核心价值是“一次配置，全员生效”；允许多个真源会重新引入配置漂移、
+审查盲区和维护成本。
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. 原生优先，适配最小化
+工具能够直接读取权威来源时，Agent21 必须直接复用该能力，不得生成冗余副本。
+只有存在已验证的不兼容时才能新增适配器。每个适配器必须具有单一职责、明确的输入输出、
+独立测试和显式能力边界；不得把某一工具的私有约定泄漏到核心领域模型。
+新增或扩展适配器时，计划必须记录原生方案为何不可用，以及最小转换规则是什么。
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+理由：优先遵循现有标准可以减少长期兼容负担，并使新增工具的成本局限在适配层内。
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. 确定性、幂等与可恢复同步
+对相同输入、配置、平台和 Agent21 版本，`sync` 必须产生等价结果；重复执行不得制造
+额外差异或重复条目。任何写操作必须在执行前完成输入校验，并采用安全写入策略，
+不得在失败时留下半写文件或破坏用户手工维护的非托管内容。覆盖、删除或迁移既有文件前，
+必须能够预览影响或提供明确的恢复路径。manifest 必须足以区分托管产物与用户资产。
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+理由：同步工具直接操作开发者仓库，确定性和可恢复性是团队信任它的前提。
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. 跨工具与跨平台兼容是产品契约
+每项同步能力必须明确支持的工具、版本假设、操作系统和同步模式。
+核心行为必须在 Linux、macOS 和 Windows 的目标场景中验证；符号链接不可用时，
+必须按已记录策略退回复制或给出可执行诊断，不得静默降级。工具专用输出必须通过
+契约测试或等价的结构化断言验证，并由 `doctor` 暴露不支持、缺失或漂移状态。
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+理由：Agent21 面向异构团队环境，未经验证的平台或工具差异会直接破坏统一配置承诺。
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. 验证优先与最小变更
+所有行为变更和缺陷修复必须先定义可验证的失败或验收条件，再实施最小范围修改。
+适配器映射、配置解析、同步写入、manifest 更新和错误恢复必须具有自动化测试；
+跨组件工作流必须具有集成测试。仅文档或纯机械变更可以不新增测试，但计划或评审中必须说明
+为何不影响行为。实现必须遵循 SOLID、DRY、KISS 和 YAGNI，不得顺带重构无关代码；
+新建或实质变更的文件、方法和关键逻辑必须包含有意义的注释，不得用注释复述显然代码。
+单文件不得超过 1000 行，单函数不得超过 80 行，超限必须按职责拆分。
+
+理由：Agent21 的错误会跨多个工具扩散，先验证、后修改和控制变更面可以降低回归风险。
+
+### VI. 本地优先与最小权限
+Agent21 默认必须只处理当前仓库内的声明与托管产物，不得自动上传项目内容、修改全局配置、
+写入仓库外路径或执行 Skill 中的任意代码。日志、诊断和 manifest 不得记录令牌、密钥或其他
+明文凭证。访问远程 Skill、注册表或 MCP 服务必须是显式功能，并使用安全传输；
+安装第三方 Skill 前必须验证其结构、来源和将要写入的范围。
+
+理由：统一配置层接触多个工具的凭证与执行入口，默认本地化和最小权限可限制供应链与泄露风险。
+
+## Compatibility and Safety Constraints
+
+- 配置格式、manifest 和 CLI 公共输出属于版本化契约；不兼容变更必须提供迁移说明，
+  并按语义化版本提升主版本。
+- 未知字段、未知工具和不受支持的平台组合必须产生明确、可操作的诊断；不得静默丢弃配置。
+- 生成文件必须包含可识别的托管来源，或在 manifest 中具有可追踪记录；同步不得覆盖未托管文件。
+- 外部依赖必须有明确必要性、固定的兼容范围和故障隔离策略；能复用标准或现有工具时不得自建替代。
+- 用户可见错误必须说明失败对象、未完成的操作和下一步修复方式，同时避免输出敏感数据。
+- 新增 Agent 支持时，必须记录指令、Skills、MCP 三类能力分别属于原生、兼容映射、转换或不支持。
+
+## Development Workflow and Quality Gates
+
+1. 规格必须定义用户价值、权威输入、受影响工具与平台、安全边界、可测验收条件和明确的非目标。
+2. 计划必须通过 Constitution Check，逐项说明单一真源、适配边界、幂等恢复、兼容矩阵、
+   测试策略和权限边界；任何例外必须记录理由、风险、替代方案与退出计划。
+3. 任务必须按可独立验证的用户故事组织。行为变更必须先添加失败测试，随后实现并通过测试；
+   涉及生成文件时必须包含重复同步、漂移检测、失败恢复和未托管文件保护用例。
+4. 合并前必须运行与变更范围相称的格式检查、静态分析、单元测试、契约测试、集成测试和
+   `agent21 doctor` 验证。无法执行的检查必须在评审中列为已知缺口，不得表述为已通过。
+5. 评审必须确认修改范围可追溯至规格、生成物没有成为新真源、日志不泄露敏感信息，
+   且文档与兼容矩阵已同步。发布前必须完成目标平台的回归验证和迁移说明。
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+本宪章是 Agent21 工程决策与 Spec Kit 产物的最高项目级约束；与其他项目文档冲突时，
+以本宪章为准，`AGENTS.md` 负责补充具体执行规范，但不得降低本宪章要求。
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+修订必须通过评审提交，内容至少包括变更动机、受影响原则或章节、迁移影响、依赖模板同步情况
+以及验证证据。修订批准后，必须在同一变更中更新本文件顶部的 Sync Impact Report、
+版本号、修订日期和所有受影响的 Spec Kit 模板。
+
+版本遵循语义化版本：删除原则、弱化既有保证或重新定义治理边界提升 MAJOR；新增原则、
+章节或实质性扩展要求提升 MINOR；不改变约束含义的澄清、措辞和纠错提升 PATCH。
+首次批准版本为 `1.0.0`。
+
+每个实施计划必须在研究前和设计后执行 Constitution Check；每个代码评审必须检查适用条款，
+并要求对例外提供书面依据。维护者必须在每个发布候选版本审查兼容矩阵、测试证据、
+安全边界和迁移说明。未满足的强制条款会阻止合并或发布，除非宪章先被正式修订。
+
+**Version**: 1.0.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-09

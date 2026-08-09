@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "agent": "opencode",
+  "status": "implemented",
+  "capabilities": {
+    "instructions": {
+      "mode": "native",
+      "notes": "指令原生复用。"
+    },
+    "skills": {
+      "mode": "native",
+      "notes": "Skills 原生复用统一目录。"
+    },
+    "mcp": {
+      "mode": "unsupported",
+      "notes": "MVP 不承诺 MCP。"
+    }
+  },
+  "source_inputs": [
+    "AGENTS.md",
+    ".agents/skills"
+  ],
+  "managed_outputs": [],
+  "platform_modes": {
+    "linux": ["auto", "copy"],
+    "macos": ["auto", "copy"],
+    "windows": ["copy"]
+  },
+  "contract_cases": ["opencode-instructions", "opencode-skills"]
+}

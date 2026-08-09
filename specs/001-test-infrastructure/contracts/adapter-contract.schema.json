@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent21.dev/schemas/adapter-test-contract-v1.json",
+  "title": "Agent21 Adapter Test Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "agent",
+    "status",
+    "capabilities",
+    "source_inputs",
+    "managed_outputs",
+    "platform_modes",
+    "contract_cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "agent": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "status": {
+      "enum": ["implemented", "planned", "unsupported"]
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instructions", "skills", "mcp"],
+      "properties": {
+        "instructions": {"$ref": "#/$defs/capability"},
+        "skills": {"$ref": "#/$defs/capability"},
+        "mcp": {"$ref": "#/$defs/capability"}
+      }
+    },
+    "source_inputs": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/repositoryPath"},
+      "uniqueItems": true
+    },
+    "managed_outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "kind", "managed", "snapshot"],
+        "properties": {
+          "path": {"$ref": "#/$defs/repositoryPath"},
+          "kind": {"enum": ["file", "directory", "symlink"]},
+          "managed": {"const": true},
+          "snapshot": {"type": "boolean"}
+        }
+      }
+    },
+    "platform_modes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["linux", "macos", "windows"],
+      "properties": {
+        "linux": {"$ref": "#/$defs/modes"},
+        "macos": {"$ref": "#/$defs/modes"},
+        "windows": {"$ref": "#/$defs/modes"}
+      }
+    },
+    "contract_cases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]*$"
+      },
+      "uniqueItems": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {"const": "implemented"}
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "contract_cases": {"minItems": 1}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "enum": ["native", "compatible", "transform", "unsupported"]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {"pattern": "^/"},
+          {"pattern": "^[A-Za-z]:"},
+          {"pattern": "(^|/)\\.\\.(/|$)"}
+        ]
+      }
+    },
+    "modes": {
+      "type": "array",
+      "items": {
+        "enum": ["auto", "copy", "symlink", "unsupported"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  }
+}

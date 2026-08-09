@@ -1,0 +1,166 @@
+name: Main Gate
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  full-validation:
+    name: ${{ matrix.os }} Python ${{ matrix.python-version }} main session
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: '3.11'
+          - os: ubuntu-latest
+            python-version: '3.12'
+          - os: ubuntu-latest
+            python-version: '3.13'
+          - os: ubuntu-latest
+            python-version: '3.14'
+          - os: windows-latest
+            python-version: '3.11'
+          - os: windows-latest
+            python-version: '3.14'
+          - os: macos-latest
+            python-version: '3.11'
+          - os: macos-latest
+            python-version: '3.14'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+
+      - name: Install locked development environment
+        run: uv sync --locked --group dev
+
+      - name: Record runner image
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "runner_os=${{ runner.os }}"
+            echo "image_os=${ImageOS:-unknown}"
+            echo "image_version=${ImageVersion:-unknown}"
+          } | tee runner-image.txt
+
+      - name: Run full main validation
+        run: uv run nox -s main
+
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: main-evidence-${{ matrix.os }}-${{ matrix.python-version }}
+          path: |
+            runner-image.txt
+            .coverage*
+            coverage.xml
+            htmlcov/
+            junit*.xml
+            pytest*.xml
+            test-results/
+            reports/
+            dist/
+          if-no-files-found: ignore
+
+  package:
+    name: Build and validate package
+    runs-on: ubuntu-latest
+    needs: full-validation
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+
+      - name: Install locked development environment
+        run: uv sync --locked --group dev
+
+      - name: Run package validation session
+        run: uv run nox -s package
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-distributions
+          path: dist/*
+          if-no-files-found: error
+
+  dependency-audit:
+    name: Locked dependency vulnerability audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+
+      - name: Install locked development environment
+        run: uv sync --locked --group dev
+
+      - name: Run pip-audit
+        run: uv run pip-audit
+
+  main-gate:
+    name: Main Gate status
+    runs-on: ubuntu-latest
+    needs:
+      - full-validation
+      - package
+      - dependency-audit
+    if: always()
+    steps:
+      - name: Block on missing or failed checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ needs.full-validation.result }}" != "success" ]]; then
+            echo "Full validation matrix did not pass." >&2
+            exit 1
+          fi
+          if [[ "${{ needs.package.result }}" != "success" ]]; then
+            echo "Package validation did not pass." >&2
+            exit 1
+          fi
+          if [[ "${{ needs.dependency-audit.result }}" != "success" ]]; then
+            echo "Dependency audit did not pass." >&2
+            exit 1
+          fi
+          echo "Main Gate passed."

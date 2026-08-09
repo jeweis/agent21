@@ -40,7 +40,21 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- **Single source**: Identify the authoritative inputs and every generated output.
+  Confirm no generated artifact becomes independently maintained state.
+- **Adapter boundary**: For each affected tool, classify the change as native,
+  compatible mapping, transform, or unsupported. Justify every new transform.
+- **Safe synchronization**: Explain deterministic output, repeat-run idempotency,
+  drift detection, failure recovery, and protection of unmanaged files.
+- **Compatibility contract**: List affected tools, platforms, sync modes, public
+  schemas/CLI output, fallback behavior, and migration requirements.
+- **Verification**: Define failing-first tests for behavior changes, adapter contract
+  tests, cross-component integration tests, and the final `agent21 doctor` evidence.
+- **Security boundary**: Confirm repository-scoped writes, secret-safe diagnostics,
+  no implicit uploads or code execution, and validation of external Skill sources.
+- **Simplicity**: Document the smallest viable design. Record any constitution
+  exception in Complexity Tracking with its risk and removal plan. Confirm the
+  file/function size limits and meaningful-comment requirements remain satisfied.
 
 ## Project Structure
 

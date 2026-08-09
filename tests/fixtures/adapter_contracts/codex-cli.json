@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "agent": "codex-cli",
+  "status": "implemented",
+  "capabilities": {
+    "instructions": {
+      "mode": "native",
+      "notes": "指令直接复用权威 AGENTS.md。"
+    },
+    "skills": {
+      "mode": "native",
+      "notes": "Skills 直接复用权威目录。"
+    },
+    "mcp": {
+      "mode": "transform",
+      "notes": "MCP 输出为工具专用格式。"
+    }
+  },
+  "source_inputs": [
+    "AGENTS.md",
+    ".agents/skills"
+  ],
+  "managed_outputs": [
+    {"path": ".codex/config.toml", "kind": "file", "managed": true, "snapshot": true}
+  ],
+  "platform_modes": {
+    "linux": ["auto", "copy", "symlink"],
+    "macos": ["auto", "copy", "symlink"],
+    "windows": ["copy"]
+  },
+  "contract_cases": [
+    "codex-cli-instructions",
+    "codex-cli-skills",
+    "codex-cli-mcp"
+  ]
+}

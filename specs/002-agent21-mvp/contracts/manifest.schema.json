@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent21 Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "agent21_version", "managed_artifacts", "skills"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "agent21_version": {"type": "string", "minLength": 1},
+    "managed_artifacts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/artifact"}
+    },
+    "skills": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/skill"}
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent", "path", "kind", "mode", "source", "digest"],
+      "properties": {
+        "agent": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["file", "directory", "symlink"]},
+        "mode": {"enum": ["native", "copy", "symlink", "transform"]},
+        "source": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "path", "source_type", "source", "digest"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "path": {"type": "string", "pattern": "^\\.agents/skills/"},
+        "source_type": {"enum": ["local", "git"]},
+        "source": {"type": "string", "minLength": 1},
+        "version": {"type": ["string", "null"]},
+        "digest": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

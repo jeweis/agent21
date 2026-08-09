@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "fixture": {
+      "command": "python",
+      "args": [
+        "-m",
+        "fixture_mcp"
+      ],
+      "env": {
+        "FIXTURE_TOKEN": "fixture-secret-token"
+      }
+    }
+  }
+}

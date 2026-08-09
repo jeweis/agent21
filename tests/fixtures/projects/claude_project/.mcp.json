@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "local-fixture": {
+      "command": "python",
+      "args": [
+        "-m",
+        "fixture_server"
+      ]
+    }
+  }
+}

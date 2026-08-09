@@ -1,0 +1,6 @@
+{
+  "schema_version": "1",
+  "managed_outputs": [
+    "../outside-project.txt"
+  ],
+  "broken": true,

@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "agent": "claude-code",
+  "status": "implemented",
+  "capabilities": {
+    "instructions": {
+      "mode": "compatible",
+      "notes": "指令文件需要兼容映射。"
+    },
+    "skills": {
+      "mode": "compatible",
+      "notes": "Skills 路径需要兼容映射。"
+    },
+    "mcp": {
+      "mode": "native",
+      "notes": "MCP 优先复用权威配置。"
+    }
+  },
+  "source_inputs": [
+    "AGENTS.md",
+    ".agents/skills"
+  ],
+  "managed_outputs": [
+    {"path": "CLAUDE.md", "kind": "file", "managed": true, "snapshot": true},
+    {"path": ".claude/skills", "kind": "directory", "managed": true, "snapshot": true}
+  ],
+  "platform_modes": {
+    "linux": ["auto", "copy", "symlink"],
+    "macos": ["auto", "copy", "symlink"],
+    "windows": ["copy"]
+  },
+  "contract_cases": [
+    "claude-code-instructions",
+    "claude-code-skills",
+    "claude-code-mcp"
+  ]
+}

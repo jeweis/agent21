@@ -1,0 +1,34 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtual environments and build artifacts
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Test and tool artifacts
+.nox/
+.uv-cache/
+.hypothesis/
+
+# Secrets and local overrides
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/

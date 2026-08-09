@@ -98,6 +98,21 @@
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
+### Configuration, Compatibility & Safety *(mandatory for Agent21 behavior changes)*
+
+<!--
+  Identify the authoritative source files, all generated or managed outputs, and
+  how unmanaged user files are protected. Classify each affected agent capability
+  as native, compatible mapping, transform, or unsupported.
+-->
+
+- **Authoritative Inputs**: [AGENTS.md, .agents/config.yaml, .agents/skills/, .mcp.json, or N/A]
+- **Managed Outputs**: [Generated files, links, manifest entries, or N/A]
+- **Affected Agents**: [Agent and capability classification]
+- **Platforms / Sync Modes**: [Linux, macOS, Windows; auto, copy, symlink, or N/A]
+- **Recovery & Drift**: [Idempotency, rollback/recovery, and unmanaged-file protection]
+- **Security Boundary**: [Write scope, credential handling, remote access, and code-execution constraints]
+
 ### Key Entities *(include if feature involves data)*
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]
@@ -121,8 +136,8 @@
 
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right assumptions based on reasonable defaults
-  chosen when the feature description did not specify certain details.
+  Record only low-risk, reversible defaults that do not change scope, architecture,
+  security, or public compatibility. Mark material unknowns as NEEDS CLARIFICATION.
 -->
 
 - [Assumption about target users, e.g., "Users have stable internet connectivity"]

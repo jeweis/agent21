@@ -1,0 +1,6 @@
+---
+description: Agent21 fixture rule
+globs: ["**/*.py"]
+---
+
+Follow the repository agent instructions.
