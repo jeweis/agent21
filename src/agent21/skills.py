@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import tempfile
 from dataclasses import replace
-from pathlib import Path
+from pathlib import Path, PurePath
 from urllib.parse import urlsplit, urlunsplit
 
 from agent21.lock import ProjectLock
@@ -27,6 +27,8 @@ def install_skill(root: Path, source: str, *, name: str | None = None) -> SkillR
 
     root = root.resolve()
     is_git = _is_git_source(source)
+    # Normalize local relative paths so Windows backslashes never reach validators.
+    local_source = source if is_git else PurePath(source).as_posix()
     with tempfile.TemporaryDirectory(prefix="agent21-skill-") as temp_dir:
         if is_git:
             staged_source = Path(temp_dir) / "repository"
@@ -34,9 +36,9 @@ def install_skill(root: Path, source: str, *, name: str | None = None) -> SkillR
             source_type = SourceType.GIT
             recorded_source = _redact_url(source)
         else:
-            staged_source = safe_join(root, source)
+            staged_source = safe_join(root, local_source)
             source_type = SourceType.LOCAL
-            recorded_source = Path(source).as_posix()
+            recorded_source = local_source
         skill_name = name or staged_source.name.removesuffix(".git")
         _validate_package(staged_source, skill_name)
         target_relative = f".agents/skills/{skill_name}"
