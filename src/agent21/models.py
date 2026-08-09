@@ -11,7 +11,8 @@ from pathlib import Path, PurePath, PurePosixPath
 from agent21.errors import BoundaryError
 
 SCHEMA_VERSION = 1
-REGISTERED_AGENTS = ("claude", "codex", "cursor", "opencode", "pi")
+LEGACY_AGENTS = ("claude", "codex", "cursor", "opencode", "pi")
+REGISTERED_AGENTS = (*LEGACY_AGENTS, "qoder", "workbuddy")
 _DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 _SKILL_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 _WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:")
@@ -204,8 +205,21 @@ class Manifest:
 
 
 @dataclass(frozen=True)
+class DependencyRequirement:
+    """Optional executable required for one adapter capability."""
+
+    executable: str
+    install_hint: str
+    required_for: CapabilityStatus
+
+    def __post_init__(self) -> None:
+        if not self.executable or not self.install_hint:
+            raise ValueError("dependency executable and install hint are required")
+
+
+@dataclass(frozen=True)
 class AgentCapability:
-    """Declared adapter support for one MVP agent."""
+    """Declared adapter support for one registered agent."""
 
     agent: str
     instructions: CapabilityStatus
@@ -213,6 +227,7 @@ class AgentCapability:
     mcp: CapabilityStatus
     implemented: bool
     executable: str | None = None
+    mcp_dependency: DependencyRequirement | None = None
 
     def __post_init__(self) -> None:
         validate_agent_slug(self.agent)

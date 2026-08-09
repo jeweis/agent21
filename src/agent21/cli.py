@@ -43,7 +43,10 @@ def main(
 def init_command(
     agents: Annotated[
         str | None,
-        typer.Option("--agents", help="Comma-separated Agents to enable."),
+        typer.Option(
+            "--agents",
+            help=("Comma-separated Agents: claude, codex, cursor, opencode, pi, qoder, workbuddy."),
+        ),
     ] = None,
     mode: Annotated[
         str,
@@ -85,7 +88,7 @@ def sync_command(
         typer.Option("--dry-run", help="Print the validated plan without writing files."),
     ] = False,
 ) -> None:
-    """Synchronize authoritative sources to enabled installed Agents."""
+    """Synchronize authoritative sources to enabled Agents."""
 
     try:
         result = sync_project(Path.cwd(), dry_run=dry_run)

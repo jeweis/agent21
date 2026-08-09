@@ -2,17 +2,19 @@
 
 Agent21 的适配器测试以 `specs/001-test-infrastructure/contracts/adapter-matrix.md`
 为权威矩阵，以 `tests/fixtures/adapter_contracts/*.json` 为可执行契约资产。
-Claude Code、Codex CLI、Cursor、OpenCode 和 Pi 已提升为 `implemented`；
-WorkBuddy 和 Qoder 仍为后续路线图，不计入 MVP 支持率。
+Claude Code、Codex CLI、Cursor、OpenCode、Pi、WorkBuddy 和 Qoder 均为 `implemented`。
 
 ## MVP Capability Mapping
 
 - Claude Code：`CLAUDE.md` 与 `.claude/skills` 为受管兼容输出，根 `.mcp.json` 原生复用。
 - Codex CLI：原生读取 `AGENTS.md`/`.agents/skills`，MCP 转换为 `.codex/config.toml`。
 - Cursor：原生读取指令/Skills，MCP 转换为 `.cursor/mcp.json`。
-- OpenCode、Pi：原生复用指令/Skills，MVP 对 MCP 明确报告 `unsupported`。
+- OpenCode：原生复用指令/Skills，MCP 转换为项目 `opencode.json`。
+- Pi：原生复用指令/Skills，`pi-mcp-adapter` 直接消费根 `.mcp.json`，Agent21 仅检测依赖。
+- WorkBuddy：映射 `.codebuddy/rules/agent21.md` 与 `.codebuddy/skills`，原生复用根 MCP。
+- Qoder：原生复用指令/MCP，仅映射 `.qoder/skills`。
 
-运行时 registry 使用 `claude`、`codex`、`cursor`、`opencode`、`pi` 稳定 slug；
+运行时 registry 使用 `claude`、`codex`、`cursor`、`opencode`、`pi`、`workbuddy`、`qoder` 稳定 slug；
 测试 fixture 可保留面向用户的产品展示名。
 
 ## Promotion Flow
@@ -23,7 +25,7 @@ WorkBuddy 和 Qoder 仍为后续路线图，不计入 MVP 支持率。
 2. 更新对应 JSON 契约，并保持 schema 校验通过。
 3. 为每个非 `unsupported` 能力添加 `<agent>-<capability>` 用例。
 4. 原生能力证明复用权威输入，不生成同名冗余托管副本。
-5. `compatible` 或 `transform` 输出必须声明纳入快照的托管产物。
+5. `compatible` 或 `transform` 若生成托管输出，必须声明纳入快照；直接消费权威源的外部兼容层无需伪造快照。
 
 ## Baseline Review
 

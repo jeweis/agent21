@@ -21,7 +21,32 @@ def test_default_config_matches_mvp_sources_and_agents() -> None:
     assert config.instructions_source == "AGENTS.md"
     assert config.skills_source == ".agents/skills"
     assert config.mcp_source == ".mcp.json"
-    assert set(config.agents) == {"claude", "codex", "cursor", "opencode", "pi"}
+    assert set(config.agents) == {
+        "claude",
+        "codex",
+        "cursor",
+        "opencode",
+        "pi",
+        "qoder",
+        "workbuddy",
+    }
+
+
+def test_load_legacy_config_disables_additive_agents(tmp_path: Path) -> None:
+    """Schema v1 projects gain new agents in a disabled state without migration."""
+
+    config = default_config()
+    save_config(tmp_path, config)
+    path = tmp_path / CONFIG_PATH
+    text = path.read_text(encoding="utf-8")
+    text = text.replace("  qoder:\n    enabled: true\n", "")
+    text = text.replace("  workbuddy:\n    enabled: true\n", "")
+    path.write_text(text, encoding="utf-8")
+
+    loaded = load_config(tmp_path)
+
+    assert not loaded.agents["qoder"].enabled
+    assert not loaded.agents["workbuddy"].enabled
 
 
 def test_save_config_writes_deterministic_yaml(tmp_path: Path) -> None:

@@ -15,8 +15,16 @@ pytestmark = pytest.mark.adapter
 
 
 def test_registry_contains_mvp_adapters() -> None:
-    """MVP 注册表只暴露五个已声明 Agent。"""
-    assert set(REGISTRY) == {"claude", "codex", "cursor", "opencode", "pi"}
+    """注册表暴露七个已声明 Agent。"""
+    assert set(REGISTRY) == {
+        "claude",
+        "codex",
+        "cursor",
+        "opencode",
+        "pi",
+        "qoder",
+        "workbuddy",
+    }
     assert [name for name in sorted(REGISTRY)] == sorted(REGISTRY)
 
 
@@ -86,7 +94,14 @@ def test_all_adapters_plan_without_touching_filesystem(tmp_path: Path) -> None:
         os.chdir(original_cwd)
 
     assert _tree(tmp_path) == before
-    assert {artifact.agent for artifact in plans} == {"claude", "codex", "cursor"}
+    assert {artifact.agent for artifact in plans} == {
+        "claude",
+        "codex",
+        "cursor",
+        "opencode",
+        "qoder",
+        "workbuddy",
+    }
 
 
 def _tree(root: Path) -> tuple[str, ...]:

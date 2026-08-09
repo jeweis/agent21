@@ -1,29 +1,20 @@
 {
   "schema_version": "1.0",
   "agent": "qoder",
-  "status": "planned",
+  "status": "implemented",
   "capabilities": {
-    "instructions": {
-      "mode": "native",
-      "notes": "路线图目标，指令原生复用。"
-    },
-    "skills": {
-      "mode": "unsupported",
-      "notes": "当前路线图不承诺 Skills。"
-    },
-    "mcp": {
-      "mode": "unsupported",
-      "notes": "当前路线图不承诺 MCP。"
-    }
+    "instructions": {"mode": "native", "notes": "原生复用根 AGENTS.md。"},
+    "skills": {"mode": "compatible", "notes": "映射到 .qoder/skills。"},
+    "mcp": {"mode": "native", "notes": "原生复用根 .mcp.json。"}
   },
-  "source_inputs": [
-    "AGENTS.md"
+  "source_inputs": ["AGENTS.md", ".agents/skills", ".mcp.json"],
+  "managed_outputs": [
+    {"path": ".qoder/skills", "kind": "directory", "managed": true, "snapshot": true}
   ],
-  "managed_outputs": [],
   "platform_modes": {
     "linux": ["auto", "copy"],
     "macos": ["auto", "copy"],
     "windows": ["copy"]
   },
-  "contract_cases": []
+  "contract_cases": ["qoder-instructions", "qoder-skills", "qoder-mcp"]
 }

@@ -54,6 +54,94 @@ def cursor_json(servers: Mapping[str, Mapping[str, Any]]) -> str:
     return json.dumps(payload, indent=2, sort_keys=True) + "\n"
 
 
+def opencode_json(servers: Mapping[str, Mapping[str, Any]]) -> str:
+    """Render the supported MCP subset as deterministic OpenCode JSON."""
+
+    mapped = {name: _opencode_server(name, server) for name, server in sorted(servers.items())}
+    payload = {"$schema": "https://opencode.ai/config.json", "mcp": mapped}
+    return json.dumps(payload, indent=2, sort_keys=True) + "\n"
+
+
+def _opencode_server(name: str, server: Mapping[str, Any]) -> JsonObject:
+    """Validate and map one common MCP server without dropping fields."""
+
+    allowed = {"command", "args", "env", "cwd", "url", "headers", "disabled", "timeout"}
+    unknown = sorted(set(server) - allowed)
+    if unknown:
+        raise McpConfigError(f"MCP server {name} has unsupported field: {unknown[0]}")
+    has_command = "command" in server
+    has_url = "url" in server
+    if has_command == has_url:
+        raise McpConfigError(f"MCP server {name} must define exactly one of command or url")
+    result = _opencode_local(name, server) if has_command else _opencode_remote(name, server)
+    _copy_opencode_options(name, server, result)
+    return result
+
+
+def _opencode_local(name: str, server: Mapping[str, Any]) -> JsonObject:
+    """Map one local stdio server to OpenCode's command-array shape."""
+
+    command = server["command"]
+    args = server.get("args", [])
+    if not isinstance(command, str) or not command:
+        raise McpConfigError(f"MCP server {name} field command must be a non-empty string")
+    if not isinstance(args, list) or not all(isinstance(item, str) for item in args):
+        raise McpConfigError(f"MCP server {name} field args must be a string array")
+    result: JsonObject = {"type": "local", "command": [command, *args]}
+    env = server.get("env")
+    if env is not None:
+        result["environment"] = _string_mapping(name, "env", env)
+    cwd = server.get("cwd")
+    if cwd is not None:
+        if not isinstance(cwd, str) or not cwd:
+            raise McpConfigError(f"MCP server {name} field cwd must be a non-empty string")
+        result["cwd"] = cwd
+    if "headers" in server:
+        raise McpConfigError(f"MCP server {name} has unsupported field: headers")
+    return result
+
+
+def _opencode_remote(name: str, server: Mapping[str, Any]) -> JsonObject:
+    """Map one remote HTTP server to OpenCode's remote shape."""
+
+    url = server["url"]
+    if not isinstance(url, str) or not url:
+        raise McpConfigError(f"MCP server {name} field url must be a non-empty string")
+    result: JsonObject = {"type": "remote", "url": url}
+    headers = server.get("headers")
+    if headers is not None:
+        result["headers"] = _string_mapping(name, "headers", headers)
+    for field in ("args", "env", "cwd"):
+        if field in server:
+            raise McpConfigError(f"MCP server {name} has unsupported field: {field}")
+    return result
+
+
+def _copy_opencode_options(name: str, server: Mapping[str, Any], result: JsonObject) -> None:
+    """Validate and copy options shared by local and remote OpenCode servers."""
+
+    if "disabled" in server:
+        disabled = server["disabled"]
+        if type(disabled) is not bool:
+            raise McpConfigError(f"MCP server {name} field disabled must be a boolean")
+        result["enabled"] = not disabled
+    if "timeout" in server:
+        timeout = server["timeout"]
+        if isinstance(timeout, bool) or not isinstance(timeout, int | float) or timeout <= 0:
+            raise McpConfigError(f"MCP server {name} field timeout must be positive")
+        result["timeout"] = timeout
+
+
+def _string_mapping(name: str, field: str, value: Any) -> dict[str, str]:
+    """Validate an MCP string-to-string mapping."""
+
+    if not isinstance(value, dict) or not all(
+        isinstance(key, str) and isinstance(item, str) for key, item in value.items()
+    ):
+        raise McpConfigError(f"MCP server {name} field {field} must be a string mapping")
+    return {key: value[key] for key in sorted(value)}
+
+
 def codex_toml(servers: Mapping[str, Mapping[str, Any]]) -> str:
     """Render Codex project MCP config as stable TOML text."""
 

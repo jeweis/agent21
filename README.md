@@ -1,7 +1,7 @@
 # Agent21
 
 Agent21 是一个项目级 AI 编程代理配置同步 CLI。团队只维护一套工程配置，
-即可在 Claude Code、Codex CLI、Cursor、OpenCode 和 Pi 之间同步使用：
+即可在 Claude Code、Codex CLI、Cursor、OpenCode、Pi、WorkBuddy 和 Qoder 之间同步使用：
 
 - `AGENTS.md`：项目指令
 - `.agents/skills/`：项目 Skills
@@ -39,7 +39,7 @@ agent21 --version
 
 ```bash
 cd /path/to/your/project
-agent21 init --agents claude,codex,cursor,opencode,pi --mode auto --yes
+agent21 init --agents claude,codex,cursor,opencode,pi,workbuddy,qoder --mode auto --yes
 ```
 
 `init` 会创建 Agent21 配置目录、缺失的 `AGENTS.md` 和 `.agents/skills/`，并复用
@@ -113,11 +113,20 @@ Agent21 只复制并记录 Skill 内容，不执行 Skill 代码，也不保存 
 | Claude Code | 兼容同步 | 兼容同步 | 原生读取 `.mcp.json` |
 | Codex CLI | 原生读取 | 原生读取 | 转换为 `.codex/config.toml` |
 | Cursor | 原生读取 | 原生读取 | 转换为 `.cursor/mcp.json` |
-| OpenCode | 原生读取 | 原生读取 | 暂不支持 |
-| Pi | 原生读取 | 原生读取 | 暂不支持 |
+| OpenCode | 原生读取 | 原生读取 | 转换为 `opencode.json` |
+| Pi | 原生读取 | 原生读取 | 通过 `pi-mcp-adapter` 兼容读取 |
+| WorkBuddy | 映射到 `.codebuddy/rules/agent21.md` | 映射到 `.codebuddy/skills/` | 原生读取根 `.mcp.json` |
+| Qoder | 原生读取 | 映射到 `.qoder/skills/` | 原生读取根 `.mcp.json` |
 
-Agent21 不会安装这些 Agent。同步时，已启用但本机找不到可执行文件的 Agent 会被明确标记为
-`skipped`。
+Agent21 不会安装这些 Agent 或第三方扩展。Pi MCP 需由用户显式安装：
+
+```bash
+pi install npm:pi-mcp-adapter
+```
+
+Agent21 只检测 `pi-mcp-adapter` 是否可用，不执行它，也不会把“可检测”误报为已加载。
+WorkBuddy 沿用腾讯 CodeBuddy 的项目配置目录，因此不依赖推测的 CLI 名称；显式启用后即可同步
+`.codebuddy/` 项目配置。其他已启用但本机找不到可执行文件的 Agent 会被标记为 `skipped`。
 
 ## 安全与冲突处理
 

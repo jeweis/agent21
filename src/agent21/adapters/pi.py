@@ -7,7 +7,7 @@ from agent21.adapters.protocol import (
     AgentCapability,
     PlannedArtifact,
 )
-from agent21.models import CapabilityStatus
+from agent21.models import CapabilityStatus, DependencyRequirement
 
 AGENT = "pi"
 DISPLAY_NAME = "Pi"
@@ -16,13 +16,18 @@ capability = AgentCapability(
     agent=AGENT,
     instructions=CapabilityStatus.NATIVE,
     skills=CapabilityStatus.NATIVE,
-    mcp=CapabilityStatus.UNSUPPORTED,
+    mcp=CapabilityStatus.COMPATIBLE,
     implemented=True,
     executable="pi",
+    mcp_dependency=DependencyRequirement(
+        executable="pi-mcp-adapter",
+        install_hint="pi install npm:pi-mcp-adapter",
+        required_for=CapabilityStatus.COMPATIBLE,
+    ),
 )
 
 
 def plan(context: AdapterContext) -> tuple[PlannedArtifact, ...]:
-    """Pi 在 MVP 中没有托管输出，MCP 明确 unsupported。"""
+    """Pi adapter 直接消费根 MCP 权威源，不需要托管输出。"""
     del context
     return ()

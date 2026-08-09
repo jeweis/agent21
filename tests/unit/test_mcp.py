@@ -12,6 +12,7 @@ from agent21.mcp import (
     codex_toml,
     cursor_json,
     load_mcp_config,
+    opencode_json,
     redact_sensitive,
 )
 
@@ -79,6 +80,54 @@ def test_cursor_json_preserves_mcp_servers_shape_with_stable_sorting() -> None:
         "  }\n"
         "}\n"
     )
+
+
+def test_opencode_json_maps_local_and_remote_servers() -> None:
+    """OpenCode mapping preserves every supported observable server field."""
+
+    content = opencode_json(
+        {
+            "local": {
+                "command": "npx",
+                "args": ["-y", "tool"],
+                "env": {"TOKEN": "value"},
+                "cwd": "subdir",
+                "disabled": True,
+                "timeout": 10,
+            },
+            "remote": {
+                "url": "https://example.test/mcp",
+                "headers": {"Authorization": "Bearer value"},
+            },
+        }
+    )
+    payload = json.loads(content)
+
+    assert payload["mcp"]["local"] == {
+        "command": ["npx", "-y", "tool"],
+        "cwd": "subdir",
+        "enabled": False,
+        "environment": {"TOKEN": "value"},
+        "timeout": 10,
+        "type": "local",
+    }
+    assert payload["mcp"]["remote"]["headers"]["Authorization"] == "Bearer value"
+
+
+@pytest.mark.parametrize(
+    "server",
+    [
+        {"command": "tool", "unknown": True},
+        {"command": "tool", "url": "https://example.test"},
+        {"command": "tool", "args": [1]},
+        {"url": "https://example.test", "env": {"A": "b"}},
+    ],
+)
+def test_opencode_json_rejects_unrepresentable_fields(server: dict[str, object]) -> None:
+    """Target-incompatible values fail instead of being silently discarded."""
+
+    with pytest.raises(McpConfigError, match="MCP server demo"):
+        opencode_json({"demo": server})
 
 
 def test_redact_sensitive_removes_secret_values_recursively() -> None:

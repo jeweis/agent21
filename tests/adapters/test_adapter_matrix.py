@@ -14,8 +14,8 @@ from tests.support.adapter_contracts import (
 pytestmark = pytest.mark.adapter
 
 
-def test_only_promoted_mvp_adapters_count_as_implemented() -> None:
-    """五个已验证 MVP adapter 进入通过率，路线图 adapter 仍被排除。"""
+def test_all_seven_adapters_count_as_implemented() -> None:
+    """七个已验证 adapter 全部进入契约通过率。"""
     contracts = load_adapter_contracts()
 
     assert {contract["agent"] for contract in implemented_contracts(contracts)} == {
@@ -24,11 +24,10 @@ def test_only_promoted_mvp_adapters_count_as_implemented() -> None:
         "cursor",
         "opencode",
         "pi",
-    }
-    assert {contract["agent"] for contract in contracts if contract["status"] == "planned"} == {
         "qoder",
         "workbuddy",
     }
+    assert not {contract["agent"] for contract in contracts if contract["status"] == "planned"}
 
 
 def test_contract_status_and_capabilities_match_matrix() -> None:

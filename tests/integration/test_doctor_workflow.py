@@ -36,3 +36,53 @@ def test_doctor_results_have_stable_order(tmp_path: Path) -> None:
     results = diagnose_project(tmp_path)
 
     assert results == sorted(results, key=lambda item: (item.check_id, item.subject))
+
+
+@pytest.mark.integration
+def test_doctor_reports_workbuddy_as_configuration_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """WorkBuddy support does not depend on a guessed CLI executable."""
+
+    initialize_project(tmp_path, agents=("workbuddy",), assume_yes=True)
+    monkeypatch.setattr("agent21.doctor.detect_agents", lambda: {"workbuddy": False})
+
+    results = diagnose_project(tmp_path)
+
+    row = next(result for result in results if result.subject == "workbuddy")
+    assert row.check_id == "agent.configuration"
+    assert row.status.value == "info"
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("dependency_available", "expected_status", "expected_fragment"),
+    [
+        (False, "unsupported", "unavailable"),
+        (True, "info", "runtime state is not confirmed"),
+    ],
+)
+def test_doctor_reports_pi_adapter_without_executing_it(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    dependency_available: bool,
+    expected_status: str,
+    expected_fragment: str,
+) -> None:
+    """Pi dependency diagnostics only use executable discovery."""
+
+    initialize_project(tmp_path, agents=("pi",), assume_yes=True)
+    (tmp_path / ".mcp.json").write_text(
+        '{"mcpServers":{"demo":{"command":"demo"}}}\n', encoding="utf-8"
+    )
+    monkeypatch.setattr("agent21.doctor.detect_agents", lambda: {"pi": True})
+    monkeypatch.setattr("agent21.doctor.executable_available", lambda command: dependency_available)
+
+    results = diagnose_project(tmp_path)
+
+    row = next(result for result in results if result.check_id == "agent.dependency")
+    assert row.subject == "pi:pi-mcp-adapter"
+    assert row.status.value == expected_status
+    assert expected_fragment in row.message
+    expected_action = None if dependency_available else "pi install npm:pi-mcp-adapter"
+    assert row.action == expected_action

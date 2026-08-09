@@ -48,6 +48,7 @@ uv run nox -s release
 - 安装：下载 `release-distributions`，在干净虚拟环境中安装 wheel 和 sdist 构建出的 wheel。
 - CLI：复现 `agent21 --help`、`agent21 --version` 和 `agent21 doctor`，保留退出码与 stderr。
 - 快照：发布 CI 不允许 `--snapshot-update`；任何漂移都需要单独评审基线 diff。
+- Agent 扩展：确认 OpenCode 输出、Pi 依赖诊断、WorkBuddy `.codebuddy` 路径和 Qoder Skills 映射均通过契约测试。
 
 ## Blocking Semantics
 

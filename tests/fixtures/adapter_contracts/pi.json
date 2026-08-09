@@ -3,28 +3,16 @@
   "agent": "pi",
   "status": "implemented",
   "capabilities": {
-    "instructions": {
-      "mode": "native",
-      "notes": "指令原生复用。"
-    },
-    "skills": {
-      "mode": "native",
-      "notes": "Skills 原生复用。"
-    },
-    "mcp": {
-      "mode": "unsupported",
-      "notes": "MVP 不承诺 MCP。"
-    }
+    "instructions": {"mode": "native", "notes": "指令原生复用。"},
+    "skills": {"mode": "native", "notes": "Skills 原生复用。"},
+    "mcp": {"mode": "compatible", "notes": "pi-mcp-adapter 直接消费根配置。"}
   },
-  "source_inputs": [
-    "AGENTS.md",
-    ".agents/skills"
-  ],
+  "source_inputs": ["AGENTS.md", ".agents/skills", ".mcp.json"],
   "managed_outputs": [],
   "platform_modes": {
     "linux": ["auto", "copy"],
     "macos": ["auto", "copy"],
     "windows": ["copy"]
   },
-  "contract_cases": ["pi-instructions", "pi-skills"]
+  "contract_cases": ["pi-instructions", "pi-skills", "pi-mcp"]
 }

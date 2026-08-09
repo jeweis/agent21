@@ -13,6 +13,7 @@
 | FR-020, SC-007 public CLI semantics | `tests/contract/test_cli_*.py`, `tests/e2e/test_installed_cli.py` |
 | FR-021–FR-022, SC-006 cross-platform determinism | `tests/compatibility/`, `.github/workflows/main.yml`, `.github/workflows/release.yml` |
 | SC-005 adapter capability truth | `tests/fixtures/adapter_contracts/`, `tests/adapters/`, `specs/001-test-infrastructure/contracts/adapter-matrix.md` |
+| 003 FR-001–FR-018 expanded Agent support | `tests/adapters/test_opencode_adapter.py`, `tests/adapters/test_pi_adapter.py`, `tests/adapters/test_workbuddy_adapter.py`, `tests/adapters/test_qoder_adapter.py`, `tests/integration/test_expanded_agent_workflows.py` |
 | SC-008 first-use documentation | `README.md`, `specs/002-agent21-mvp/quickstart.md` |
 | SC-009 installable release artifact | `tests/e2e/test_installed_cli.py`, `noxfile.py::package`, `.github/workflows/release.yml` |
 

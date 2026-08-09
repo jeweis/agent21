@@ -167,6 +167,8 @@ def validate_mapped_outputs_have_snapshots(contract: dict[str, Any]) -> None:
     )
     if not has_mapped_capability:
         return
+    if not contract["managed_outputs"]:
+        return
 
     snapshot_outputs = [
         output for output in contract["managed_outputs"] if output["snapshot"] is True

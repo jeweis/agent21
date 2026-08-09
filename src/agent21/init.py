@@ -10,8 +10,8 @@ from agent21 import __version__
 from agent21.config import default_config, save_config
 from agent21.errors import ConfigError
 from agent21.manifest import save_manifest
-from agent21.models import AgentSelection, Manifest, SyncMode
-from agent21.scanner import EXECUTABLES, detect_agents
+from agent21.models import REGISTERED_AGENTS, AgentSelection, Manifest, SyncMode
+from agent21.scanner import detect_agents
 
 DEFAULT_INSTRUCTIONS = """# Project Agent Instructions
 
@@ -34,7 +34,7 @@ def _selected_agents(agents: Iterable[str] | None) -> tuple[str, ...]:
     if agents is None:
         return tuple(name for name, available in detect_agents().items() if available)
     selected = tuple(sorted(set(agents)))
-    unknown = sorted(set(selected).difference(EXECUTABLES))
+    unknown = sorted(set(selected).difference(REGISTERED_AGENTS))
     if unknown:
         raise ConfigError(f"unknown agent: {', '.join(unknown)}")
     return selected

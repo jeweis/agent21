@@ -12,8 +12,8 @@ from tests.support.adapter_contracts import (
 pytestmark = [pytest.mark.adapter, pytest.mark.snapshot]
 
 
-def test_planned_mapped_outputs_do_not_require_baselines() -> None:
-    """planned 适配器未实现输出时，不要求稳定基线。"""
+def test_mapped_outputs_require_baselines_when_outputs_exist() -> None:
+    """外部直接消费无需快照，实际映射或转换输出必须有稳定基线。"""
     for contract in load_adapter_contracts():
         validate_mapped_outputs_have_snapshots(contract)
 

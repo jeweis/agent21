@@ -8,9 +8,12 @@ import pytest
 
 from agent21.errors import Agent21Error, BoundaryError, classify_exit
 from agent21.models import (
+    AgentCapability,
     AgentSelection,
     ArtifactKind,
     ArtifactMode,
+    CapabilityStatus,
+    DependencyRequirement,
     ManagedArtifact,
     PlannedArtifact,
     SourceType,
@@ -56,9 +59,33 @@ def test_agent_slug_validation_allows_only_registered_agents() -> None:
     """Stored artifact ownership is limited to the MVP agent registry."""
 
     assert validate_agent_slug("codex") == "codex"
+    assert validate_agent_slug("qoder") == "qoder"
+    assert validate_agent_slug("workbuddy") == "workbuddy"
 
     with pytest.raises(ValueError, match="unknown agent"):
         validate_agent_slug("unknown")
+
+
+def test_capability_can_declare_non_executing_dependency() -> None:
+    """Pi-style dependencies carry static detection and repair metadata."""
+
+    dependency = DependencyRequirement(
+        executable="pi-mcp-adapter",
+        install_hint="pi install npm:pi-mcp-adapter",
+        required_for=CapabilityStatus.COMPATIBLE,
+    )
+
+    capability = AgentCapability(
+        agent="pi",
+        instructions=CapabilityStatus.NATIVE,
+        skills=CapabilityStatus.NATIVE,
+        mcp=CapabilityStatus.COMPATIBLE,
+        implemented=True,
+        executable="pi",
+        mcp_dependency=dependency,
+    )
+
+    assert capability.mcp_dependency == dependency
 
 
 def test_digest_bytes_uses_sha256_prefix() -> None:

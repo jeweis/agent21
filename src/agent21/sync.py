@@ -35,7 +35,7 @@ from agent21.models import (
     PlannedArtifact as AdapterPlan,
 )
 from agent21.project import safe_join
-from agent21.scanner import detect_agents
+from agent21.scanner import detect_agents, executable_available
 
 
 def sync_project(
@@ -59,19 +59,9 @@ def sync_project(
         mcp_servers=mcp_servers,
         sync_mode=_adapter_mode(config.sync_mode, root),
     )
-    adapter_plans = []
-    skipped: list[str] = []
-    for agent, selection in sorted(config.agents.items()):
-        if not selection.enabled:
-            continue
-        if not availability.get(agent, False):
-            skipped.append(f"{agent}: executable unavailable")
-            continue
-        adapter = REGISTRY.get(agent)
-        if adapter is None or not adapter.capability.implemented:
-            skipped.append(f"{agent}: adapter unsupported")
-            continue
-        adapter_plans.extend(adapter.plan(context))
+    adapter_plans, skipped, unavailable_agents = _collect_adapter_plans(
+        config, context, availability
+    )
 
     file_plans = [_to_file_plan(plan) for plan in adapter_plans]
     managed_paths = [artifact.path for artifact in manifest.managed_artifacts]
@@ -90,11 +80,14 @@ def sync_project(
         return SyncResult(created=created, updated=updated, unchanged=unchanged, skipped=skipped)
 
     artifacts = [_managed_artifact(item.plan.agent, item, config) for item in validated]
+    artifacts.extend(
+        artifact for artifact in manifest.managed_artifacts if artifact.agent in unavailable_agents
+    )
     next_manifest = Manifest(
         agent21_version=__version__,
         managed_artifacts=artifacts,
         skills=list(manifest.skills),
-    )
+    ).sorted()
     try:
         with ProjectLock(root, command="sync"):
             transaction = apply_transaction(
@@ -111,6 +104,41 @@ def sync_project(
         unchanged=[path.as_posix() for path in transaction.unchanged],
         skipped=skipped,
     )
+
+
+def _collect_adapter_plans(
+    config: ProjectConfig,
+    context: AdapterContext,
+    availability: Mapping[str, bool],
+) -> tuple[list[AdapterPlan], list[str], set[str]]:
+    """Collect side-effect-free plans and precise skip diagnostics."""
+
+    adapter_plans = []
+    skipped: list[str] = []
+    unavailable_agents: set[str] = set()
+    for agent, selection in sorted(config.agents.items()):
+        if not selection.enabled:
+            continue
+        adapter = REGISTRY.get(agent)
+        if adapter is None or not adapter.capability.implemented:
+            skipped.append(f"{agent}: adapter unsupported")
+            continue
+        if adapter.capability.executable is not None and not availability.get(agent, False):
+            skipped.append(f"{agent}: executable unavailable")
+            unavailable_agents.add(agent)
+            continue
+        dependency = adapter.capability.mcp_dependency
+        if (
+            context.mcp_servers
+            and dependency is not None
+            and not executable_available(dependency.executable)
+        ):
+            skipped.append(
+                f"{agent}: MCP dependency unavailable ({dependency.executable}); "
+                f"action: {dependency.install_hint}"
+            )
+        adapter_plans.extend(adapter.plan(context))
+    return adapter_plans, skipped, unavailable_agents
 
 
 def _adapter_mode(mode: SyncMode, root: Path) -> AdapterMode:

@@ -9,6 +9,7 @@ import yaml
 
 from agent21.errors import BoundaryError, ConfigError
 from agent21.models import (
+    LEGACY_AGENTS,
     REGISTERED_AGENTS,
     AgentSelection,
     ProjectConfig,
@@ -79,10 +80,15 @@ def _parse_config(raw: Any) -> ProjectConfig:
 
 def _parse_agents(raw: Any) -> dict[str, AgentSelection]:
     agents = _mapping(raw, "agents")
-    _require_fields(agents, set(REGISTERED_AGENTS), "agents")
+    unknown = sorted(set(agents) - set(REGISTERED_AGENTS))
+    missing = sorted(set(LEGACY_AGENTS) - set(agents))
+    if unknown:
+        raise ConfigError(f"unknown field in agents: {unknown[0]}")
+    if missing:
+        raise ConfigError(f"missing field in agents: {missing[0]}")
     parsed: dict[str, AgentSelection] = {}
     for agent in REGISTERED_AGENTS:
-        selection = _mapping(agents[agent], f"agents.{agent}")
+        selection = _mapping(agents.get(agent, {"enabled": False}), f"agents.{agent}")
         _require_fields(selection, {"enabled"}, f"agents.{agent}")
         try:
             parsed[agent] = AgentSelection(enabled=selection["enabled"])

@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from agent21.adapters import REGISTRY
 from agent21.config import load_config
 from agent21.errors import Agent21Error
 from agent21.lock import inspect_lock
 from agent21.manifest import artifact_is_drifted, load_manifest
 from agent21.mcp import McpConfigError, load_mcp_config
 from agent21.models import HealthCheckResult, HealthStatus, Manifest, ProjectConfig, digest_path
-from agent21.scanner import detect_agents
+from agent21.scanner import detect_agents, executable_available
 
 
 def diagnose_project(root: Path) -> list[HealthCheckResult]:
@@ -24,7 +25,7 @@ def diagnose_project(root: Path) -> list[HealthCheckResult]:
     _transaction_check(root, results)
     if config is not None:
         _source_checks(root, config, results)
-        _agent_checks(config, results)
+        _agent_checks(root, config, results)
     if manifest is not None:
         for artifact in manifest.managed_artifacts:
             drifted = artifact_is_drifted(root, artifact)
@@ -172,20 +173,72 @@ def _source_checks(root: Path, config: ProjectConfig, results: list[HealthCheckR
             results.append(_passed("source.mcp", str(config.mcp_source), "MCP source is valid"))
 
 
-def _agent_checks(config: ProjectConfig, results: list[HealthCheckResult]) -> None:
+def _agent_checks(root: Path, config: ProjectConfig, results: list[HealthCheckResult]) -> None:
     """Report enabled Agent executable availability without blocking native config."""
 
     availability = detect_agents()
+    has_mcp = _has_mcp_servers(root, config)
     for agent, selection in sorted(config.agents.items()):
         if not selection.enabled:
             continue
-        status = HealthStatus.INFO if availability.get(agent, False) else HealthStatus.UNSUPPORTED
-        message = (
-            "Agent executable is available"
-            if availability.get(agent, False)
-            else "Agent executable is unavailable"
-        )
-        results.append(HealthCheckResult("agent.executable", status, agent, message))
+        adapter = REGISTRY.get(agent)
+        if adapter is None:
+            results.append(
+                HealthCheckResult(
+                    "agent.adapter", HealthStatus.UNSUPPORTED, agent, "Agent adapter is unavailable"
+                )
+            )
+            continue
+        executable = adapter.capability.executable
+        if executable is None:
+            results.append(
+                HealthCheckResult(
+                    "agent.configuration",
+                    HealthStatus.INFO,
+                    agent,
+                    "project configuration is supported; installation cannot be confirmed by CLI",
+                )
+            )
+        else:
+            available = availability.get(agent, False)
+            results.append(
+                HealthCheckResult(
+                    "agent.executable",
+                    HealthStatus.INFO if available else HealthStatus.UNSUPPORTED,
+                    agent,
+                    "Agent executable is available"
+                    if available
+                    else "Agent executable is unavailable",
+                )
+            )
+        dependency = adapter.capability.mcp_dependency
+        if has_mcp and dependency is not None:
+            available = executable_available(dependency.executable)
+            results.append(
+                HealthCheckResult(
+                    "agent.dependency",
+                    HealthStatus.INFO if available else HealthStatus.UNSUPPORTED,
+                    f"{agent}:{dependency.executable}",
+                    (
+                        "dependency executable is detectable; runtime state is not confirmed"
+                        if available
+                        else "dependency executable is unavailable"
+                    ),
+                    None if available else dependency.install_hint,
+                )
+            )
+
+
+def _has_mcp_servers(root: Path, config: ProjectConfig) -> bool:
+    """Return whether the valid optional MCP source contains any servers."""
+
+    path = root / config.mcp_source
+    if not path.is_file():
+        return False
+    try:
+        return bool(load_mcp_config(path).servers)
+    except (McpConfigError, OSError):
+        return False
 
 
 def _recorded_skill_checks(

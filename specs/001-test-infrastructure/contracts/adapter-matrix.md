@@ -1,17 +1,17 @@
 # Agent Adapter Test Matrix
 
-本矩阵是适配器测试的权威支持登记。MVP 的五个目标 Agent 已完成协议、实现与契约验证，
-WorkBuddy 和 Qoder 仍为后续路线图。能力状态变化必须在同一变更中更新实现、契约和测试。
+本矩阵是适配器测试的权威支持登记。七个目标 Agent 均已完成协议、实现与契约验证。
+能力状态变化必须在同一变更中更新实现、契约和测试。
 
 | Agent | Status | Instructions | Skills | MCP | MVP target | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | Claude Code | implemented | compatible | compatible | native | yes | 生成 CLAUDE.md 与 Skills 映射；MCP 复用根配置 |
 | Codex CLI | implemented | native | native | transform | yes | 指令与 Skills 直接复用，MCP 转换为项目级 TOML |
 | Cursor | implemented | native | native | transform | yes | 指令与 Skills 直接复用，MCP 转换为 Cursor JSON |
-| OpenCode | implemented | native | native | unsupported | yes | 指令和 Skills 原生复用，MVP 明确不支持 MCP |
-| Pi | implemented | native | native | unsupported | yes | 指令和 Skills 原生复用，MVP 明确不支持 MCP |
-| WorkBuddy | planned | compatible | unsupported | unsupported | no | 属于 P1 路线图，不阻塞 MVP |
-| Qoder | planned | native | unsupported | unsupported | no | 属于 P1 路线图，不阻塞 MVP |
+| OpenCode | implemented | native | native | transform | yes | MCP 转换为项目 opencode.json |
+| Pi | implemented | native | native | compatible | yes | pi-mcp-adapter 直接消费根 MCP 配置 |
+| WorkBuddy | implemented | compatible | compatible | native | yes | 复用 .codebuddy 项目规则和 Skills 体系 |
+| Qoder | implemented | native | compatible | native | yes | 仅映射 .qoder/skills |
 
 ## Status Rules
 

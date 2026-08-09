@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from types import ModuleType
 
-from agent21.adapters import claude, codex, cursor, opencode, pi
+from agent21.adapters import claude, codex, cursor, opencode, pi, qoder, workbuddy
 from agent21.adapters.protocol import (
     AdapterContext,
     AgentAdapter,
@@ -21,6 +21,8 @@ REGISTRY: dict[str, ModuleType] = {
     cursor.capability.agent: cursor,
     opencode.capability.agent: opencode,
     pi.capability.agent: pi,
+    qoder.capability.agent: qoder,
+    workbuddy.capability.agent: workbuddy,
 }
 
 __all__ = [

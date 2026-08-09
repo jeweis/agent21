@@ -1,29 +1,21 @@
 {
   "schema_version": "1.0",
   "agent": "workbuddy",
-  "status": "planned",
+  "status": "implemented",
   "capabilities": {
-    "instructions": {
-      "mode": "compatible",
-      "notes": "路线图目标，指令需要兼容映射。"
-    },
-    "skills": {
-      "mode": "unsupported",
-      "notes": "当前路线图不承诺 Skills。"
-    },
-    "mcp": {
-      "mode": "unsupported",
-      "notes": "当前路线图不承诺 MCP。"
-    }
+    "instructions": {"mode": "compatible", "notes": "映射到 .codebuddy/rules/agent21.md。"},
+    "skills": {"mode": "compatible", "notes": "映射到 .codebuddy/skills。"},
+    "mcp": {"mode": "native", "notes": "原生复用根 .mcp.json。"}
   },
-  "source_inputs": [
-    "AGENTS.md"
+  "source_inputs": ["AGENTS.md", ".agents/skills", ".mcp.json"],
+  "managed_outputs": [
+    {"path": ".codebuddy/rules/agent21.md", "kind": "file", "managed": true, "snapshot": true},
+    {"path": ".codebuddy/skills", "kind": "directory", "managed": true, "snapshot": true}
   ],
-  "managed_outputs": [],
   "platform_modes": {
     "linux": ["auto", "copy"],
     "macos": ["auto", "copy"],
     "windows": ["copy"]
   },
-  "contract_cases": []
+  "contract_cases": ["workbuddy-instructions", "workbuddy-skills", "workbuddy-mcp"]
 }
