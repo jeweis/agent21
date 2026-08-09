@@ -63,19 +63,19 @@ Agent 一致的 MCP 工具，而无需维护 Pi 专用服务器清单。
 **Why this priority**: WorkBuddy 已出现在最初产品范围中，但当前无法被选择、检测或同步，导致部分团队成员
 仍需手工维护配置。
 
-**Independent Test**: 在只启用 WorkBuddy 的隔离项目中执行初始化、预览、同步和健康检查，验证项目规则和
-Skills 正确进入 `.codebuddy/` 体系、根 `.mcp.json` 被原生复用，且重复同步保持一致。
+**Independent Test**: 在只启用 WorkBuddy 的隔离项目中执行初始化、预览、同步和健康检查，验证根
+`AGENTS.md` 被原生读取、Skills 进入 `.codebuddy/skills/`、根 `.mcp.json` 被原生复用，且重复同步保持一致。
 
 **Acceptance Scenarios**:
 
 1. **Given** WorkBuddy 已安装，**When** 用户初始化并选择 WorkBuddy，
    **Then** 项目配置记录该选择，系统报告检测结果和可用能力。
 2. **Given** 项目存在权威指令和 Skills，**When** 用户为 WorkBuddy 执行同步，
-   **Then** WorkBuddy 可从项目 `.codebuddy/rules/` 和 `.codebuddy/skills/` 使用对应内容，且团队仍只编辑
-   Agent21 权威来源。
+   **Then** WorkBuddy 原生读取根 `AGENTS.md` 并从 `.codebuddy/skills/` 使用 Skills，且团队仍只编辑
+   Agent21 权威来源，不生成指令副本。
 3. **Given** 项目根存在有效 `.mcp.json`，**When** 用户为 WorkBuddy 执行同步和健康检查，
    **Then** WorkBuddy 原生复用该文件，Agent21 不生成第二份服务器配置。
-4. **Given** `.codebuddy/rules/` 或 `.codebuddy/skills/` 中存在同名未托管内容，**When** 用户同步，
+4. **Given** `.codebuddy/skills/` 中存在同名未托管内容，**When** 用户同步，
    **Then** 系统保留用户内容并明确报告冲突，不覆盖、合并或删除该内容。
 
 ---
@@ -106,7 +106,7 @@ Skills 正确进入 `.codebuddy/` 体系、根 `.mcp.json` 被原生复用，且
 - OpenCode、Pi、WorkBuddy 或 Qoder 被启用但本机未安装，或可执行文件无法运行。
 - Pi adapter 缺失、可执行文件可检测但运行态无法离线确认，或只能从用户全局环境找到。
 - 用户已有未托管的 Agent 专用配置，其中包含与权威来源同名或不同名的设置，包括
-  `.codebuddy/rules/` 或 `.codebuddy/skills/` 中的内容。
+  会遮蔽 `AGENTS.md` 的 `CODEBUDDY.md` 或 `.codebuddy/skills/` 中的内容。
 - 多个新增 Agent 同时启用，其中一个发生冲突或依赖失败。
 - `copy`、`symlink` 或 `auto` 模式在 Windows、macOS 和 Linux 上能力不同。
 - MCP 配置包含凭证、环境变量占位或认证头时发生解析、转换或诊断错误。
@@ -127,8 +127,9 @@ Skills 正确进入 `.codebuddy/` 体系、根 `.mcp.json` 被原生复用，且
   系统不得在未运行 adapter 的情况下声称已确认版本兼容、启用状态或成功加载。
 - **FR-007**: 系统不得在没有用户明确授权时安装、更新或执行 `pi-mcp-adapter`，也不得为完成项目级同步
   静默修改用户全局 Pi 配置。
-- **FR-008**: WorkBuddy 必须支持初始化选择、环境检测、同步计划和健康检查；项目规则和 Skills 必须分别
-  映射到 `.codebuddy/rules/` 和 `.codebuddy/skills/`，项目 MCP 必须原生复用根 `.mcp.json`。
+- **FR-008**: WorkBuddy 必须支持初始化选择、环境检测、同步计划和健康检查；项目指令必须原生读取根
+  `AGENTS.md`，Skills 必须映射到 `.codebuddy/skills/`，项目 MCP 必须原生复用根 `.mcp.json`；若
+  `CODEBUDDY.md` 遮蔽统一指令，健康检查必须阻断并给出修复动作。
 - **FR-009**: Qoder 必须支持初始化选择、环境检测、同步计划、健康检查和稳定能力报告；能原生读取的权威
   来源必须直接复用，只有经验证的不兼容能力才能产生最小工具专用输出。
 - **FR-010**: 系统必须保留旧项目对 Claude Code、Codex、Cursor、OpenCode 和 Pi 的启用状态与行为，
@@ -151,10 +152,9 @@ Skills 正确进入 `.codebuddy/` 体系、根 `.mcp.json` 被原生复用，且
 - **Authoritative Inputs**: `AGENTS.md`、`.agents/config.yaml`、`.agents/skills/` 和 `.mcp.json` 继续作为
   唯一权威来源；第三方 Pi adapter 只负责消费该来源，不成为新的服务器配置真源。
 - **Managed Outputs**: 仅包含各 Agent 经验证所必需的项目级配置、链接或副本，以及 manifest 中可追踪的
-  所有权与摘要记录；WorkBuddy 输出限定在项目 `.codebuddy/rules/` 和 `.codebuddy/skills/`，不得为其原生
-  MCP 能力生成重复来源。
+  所有权与摘要记录；WorkBuddy 输出限定在项目 `.codebuddy/skills/`，不得为其原生指令或 MCP 能力生成重复来源。
 - **Affected Agents**: OpenCode 的 MCP 从不支持提升为转换或原生复用；Pi 的 MCP 从不支持提升为显式第三方
-  兼容集成；WorkBuddy 以 `.codebuddy/` 项目资源体系和根 `.mcp.json` 注册为正式 Agent；Qoder 从未注册
+  兼容集成；WorkBuddy 以根 `AGENTS.md`、`.codebuddy/skills/` 和根 `.mcp.json` 注册为正式 Agent；Qoder 从未注册
   提升为正式 Agent，并逐项登记其指令、Skills 与 MCP 能力。
 - **Platforms / Sync Modes**: Linux、macOS、Windows；`auto`、`copy`、`symlink`。不适用的输出模式必须明确
   报告或按既有安全策略回退。
@@ -194,8 +194,8 @@ Skills 正确进入 `.codebuddy/` 体系、根 `.mcp.json` 被原生复用，且
 
 - OpenCode 当前提供项目级本地与远程 MCP 配置能力；具体兼容字段和最低版本在计划阶段以官方资料锁定。
 - Pi 核心不内置 MCP，本功能使用用户指定的 `pi-mcp-adapter` 作为显式第三方兼容层，而不将其描述为 Pi 原生能力。
-- WorkBuddy 与 CodeBuddy 是不同产品，但 WorkBuddy 的项目资源复用 `.codebuddy/` 配置体系：项目 Skills 位于
-  `.codebuddy/skills/`，项目规则位于 `.codebuddy/rules/`，项目 MCP 位于根 `.mcp.json`；用户级
+- WorkBuddy 与 CodeBuddy 是不同产品，但 WorkBuddy 原生读取根 `AGENTS.md`，项目 Skills 复用
+  `.codebuddy/skills/`，项目 MCP 位于根 `.mcp.json`；用户级
   `~/.codebuddy/` 不属于 Agent21 默认写入范围。
 - Qoder 的每类能力以计划阶段验证到的官方项目级行为为准；没有可靠依据的能力默认明确标记为不支持，
   不通过猜测生成配置。

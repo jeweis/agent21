@@ -228,9 +228,12 @@ class AgentCapability:
     implemented: bool
     executable: str | None = None
     mcp_dependency: DependencyRequirement | None = None
+    instructions_blocker: str | None = None
 
     def __post_init__(self) -> None:
         validate_agent_slug(self.agent)
+        if self.instructions_blocker is not None:
+            validate_project_path(self.instructions_blocker)
 
 
 @dataclass(frozen=True)

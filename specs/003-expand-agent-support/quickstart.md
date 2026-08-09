@@ -65,10 +65,11 @@ agent21 doctor
 
 Expected:
 
-- `.codebuddy/rules/agent21.md` 来自 `AGENTS.md`。
+- 根 `AGENTS.md` 由 WorkBuddy 原生读取，不生成 `.codebuddy/rules/agent21.md`。
 - `.codebuddy/skills` 来自 `.agents/skills`。
 - 根 `.mcp.json` 原生复用，不生成 MCP 副本。
 - WorkBuddy 不因缺少 CLI 可执行文件被跳过。
+- 若存在 `CODEBUDDY.md`，doctor 报告其遮蔽 `AGENTS.md`，而不是伪报统一指令已生效。
 - `~/.codebuddy` 未被读取或写入。
 
 ## Scenario 4: Qoder

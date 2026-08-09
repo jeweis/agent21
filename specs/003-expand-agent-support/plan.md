@@ -9,7 +9,7 @@
 在现有 Python CLI 和无副作用 adapter 架构内，将 OpenCode MCP 从 `unsupported` 提升为确定性转换，
 将 Pi MCP 提升为依赖 `pi-mcp-adapter` 的显式兼容能力，并把 WorkBuddy、Qoder 注册为正式 Agent。
 保持 `AGENTS.md`、`.agents/skills/`、`.mcp.json` 单一真源；WorkBuddy 只生成
-`.codebuddy/rules/agent21.md` 与 `.codebuddy/skills`，Qoder 只生成 `.qoder/skills`，两者 MCP
+`.codebuddy/skills`，Qoder 只生成 `.qoder/skills`，两者指令与 MCP
 均原生复用根 `.mcp.json`。配置 schema v1 采用向后兼容的加法扩展，旧五 Agent 配置加载时将新增 Agent
 默认为禁用。
 
@@ -42,10 +42,10 @@
 ### Pre-Research Gate — PASS
 
 - **Single source — PASS**: 权威输入仍为 `AGENTS.md`、`.agents/config.yaml`、`.agents/skills/`、
-  `.mcp.json`。新增输出为 `opencode.json`、`.codebuddy/rules/agent21.md`、`.codebuddy/skills`、
+  `.mcp.json`。新增输出为 `opencode.json`、`.codebuddy/skills`、
   `.qoder/skills`；Pi adapter 直接消费 `.mcp.json`，不产生第二真源。
-- **Adapter boundary — PASS**: OpenCode MCP=`transform`；Pi MCP=`compatible`；WorkBuddy instructions/Skills=
-  `compatible`、MCP=`native`；Qoder instructions/MCP=`native`、Skills=`compatible`。转换仅处理官方确认的不兼容格式。
+- **Adapter boundary — PASS**: OpenCode MCP=`transform`；Pi MCP=`compatible`；WorkBuddy instructions/MCP=
+  `native`、Skills=`compatible`；Qoder instructions/MCP=`native`、Skills=`compatible`。转换仅处理官方确认的不兼容格式。
 - **Safe synchronization — PASS**: 所有输出进入既有 plan→prevalidate→transaction→manifest 流程；重复同步、
   未托管冲突、漂移和回滚均由现有核心统一处理。
 - **Compatibility contract — PASS**: schema v1 只做可选字段扩展；旧五 Agent 仍为必填，新 Agent 缺失时默认禁用；

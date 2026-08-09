@@ -11,7 +11,8 @@ Claude Code、Codex CLI、Cursor、OpenCode、Pi、WorkBuddy 和 Qoder 均为 `i
 - Cursor：原生读取指令/Skills，MCP 转换为 `.cursor/mcp.json`。
 - OpenCode：原生复用指令/Skills，MCP 转换为项目 `opencode.json`。
 - Pi：原生复用指令/Skills，`pi-mcp-adapter` 直接消费根 `.mcp.json`，Agent21 仅检测依赖。
-- WorkBuddy：映射 `.codebuddy/rules/agent21.md` 与 `.codebuddy/skills`，原生复用根 MCP。
+- WorkBuddy：根目录无 `CODEBUDDY.md` 时原生读取 `AGENTS.md`，原生读取根 MCP，仅映射
+  `.codebuddy/skills`；遮蔽文件由 doctor 阻断。
 - Qoder：原生复用指令/MCP，仅映射 `.qoder/skills`。
 
 运行时 registry 使用 `claude`、`codex`、`cursor`、`opencode`、`pi`、`workbuddy`、`qoder` 稳定 slug；

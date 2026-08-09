@@ -55,6 +55,21 @@ def test_doctor_reports_workbuddy_as_configuration_only(
 
 
 @pytest.mark.integration
+def test_doctor_reports_codebuddy_file_shadowing_agents_md(tmp_path: Path) -> None:
+    """WorkBuddy must not claim native AGENTS.md when CODEBUDDY.md takes precedence."""
+
+    initialize_project(tmp_path, agents=("workbuddy",), assume_yes=True)
+    (tmp_path / "CODEBUDDY.md").write_text("# User-owned instructions\n", encoding="utf-8")
+
+    results = diagnose_project(tmp_path)
+
+    row = next(result for result in results if result.check_id == "agent.instructions")
+    assert row.subject == "workbuddy:CODEBUDDY.md"
+    assert row.status.value == "blocked"
+    assert "shadows AGENTS.md" in row.message
+
+
+@pytest.mark.integration
 @pytest.mark.parametrize(
     ("dependency_available", "expected_status", "expected_fragment"),
     [

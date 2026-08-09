@@ -227,6 +227,27 @@ def _agent_checks(root: Path, config: ProjectConfig, results: list[HealthCheckRe
                     None if available else dependency.install_hint,
                 )
             )
+        _instruction_shadow_check(root, agent, adapter.capability.instructions_blocker, results)
+
+
+def _instruction_shadow_check(
+    root: Path,
+    agent: str,
+    blocker: str | None,
+    results: list[HealthCheckResult],
+) -> None:
+    """Report a user-owned file that takes precedence over root AGENTS.md."""
+
+    if blocker is None or not (root / blocker).exists():
+        return
+    results.append(
+        _blocked(
+            "agent.instructions",
+            f"{agent}:{blocker}",
+            f"{blocker} shadows AGENTS.md for {agent}",
+            f"remove or reconcile {blocker} so AGENTS.md remains authoritative",
+        )
+    )
 
 
 def _has_mcp_servers(root: Path, config: ProjectConfig) -> bool:

@@ -50,15 +50,17 @@ remote 要求非空 `url`。目标不支持、互斥冲突或类型错误字段�
 
 ## 5. WorkBuddy 项目配置
 
-**Decision**: WorkBuddy 使用稳定 slug `workbuddy`。`AGENTS.md` 兼容映射到
-`.codebuddy/rules/agent21.md`；`.agents/skills` 按同步模式映射到 `.codebuddy/skills`；根 `.mcp.json`
-原生复用。Agent21 不读写用户级 `~/.codebuddy`。
+**Decision**: WorkBuddy 使用稳定 slug `workbuddy`。项目根没有 `CODEBUDDY.md` 时，WorkBuddy 原生加载
+`AGENTS.md`；`.agents/skills` 按同步模式映射到 `.codebuddy/skills`；根 `.mcp.json` 原生复用。
+Agent21 不读写用户级 `~/.codebuddy`。
 
-**Rationale**: 用户确认 WorkBuddy 与 CodeBuddy 是不同产品，但 WorkBuddy 项目资源沿用 `.codebuddy` 体系。
-固定 Agent21 专用规则文件可与其他未托管规则共存，目录级 Skills 目标继续由现有冲突保护管理。
+**Rationale**: 官方规则文档明确 `AGENTS.md` 是 `CODEBUDDY.md` 不存在时的原生兼容入口；`.codebuddy/rules`
+是带元数据和加载策略的附加规则体系，不是同步统一指令的必需目标。目录级 Skills 目标继续由现有冲突保护管理。
 
-**Alternatives considered**: 将产品 slug 改成 `codebuddy` 会混淆两个产品；生成 `CODEBUDDY.md` 没有用户确认的
-WorkBuddy 项目契约；写用户目录违反本地项目边界。
+**Alternatives considered**: 将 `AGENTS.md` 复制到 `.codebuddy/rules` 会制造第二份指令且格式语义不等价；
+生成 `CODEBUDDY.md` 也会覆盖原生 fallback；将产品 slug 改成 `codebuddy` 会混淆两个产品；写用户目录违反边界。
+
+**References**: [WorkBuddy/CodeBuddy Rules](https://www.workbuddy.cn/docs/ide/User-guide/Rules)
 
 ## 6. Qoder 项目配置
 

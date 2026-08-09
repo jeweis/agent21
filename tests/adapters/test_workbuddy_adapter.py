@@ -12,15 +12,13 @@ pytestmark = pytest.mark.adapter
 
 
 def test_workbuddy_uses_codebuddy_project_paths() -> None:
-    """WorkBuddy maps rules and Skills while reusing root MCP natively."""
+    """WorkBuddy reads root instructions/MCP and maps only project Skills."""
 
     artifacts = plan(AdapterContext(sync_mode=ArtifactMode.SYMLINK))
 
     assert capability.executable is None
+    assert capability.instructions is CapabilityStatus.NATIVE
+    assert capability.instructions_blocker == "CODEBUDDY.md"
     assert capability.mcp is CapabilityStatus.NATIVE
-    assert [artifact.target for artifact in artifacts] == [
-        ".codebuddy/rules/agent21.md",
-        ".codebuddy/skills",
-    ]
-    assert artifacts[0].mode is ArtifactMode.COPY
-    assert artifacts[1].mode is ArtifactMode.SYMLINK
+    assert [artifact.target for artifact in artifacts] == [".codebuddy/skills"]
+    assert artifacts[0].mode is ArtifactMode.SYMLINK

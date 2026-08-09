@@ -115,7 +115,7 @@ Agent21 只复制并记录 Skill 内容，不执行 Skill 代码，也不保存 
 | Cursor | 原生读取 | 原生读取 | 转换为 `.cursor/mcp.json` |
 | OpenCode | 原生读取 | 原生读取 | 转换为 `opencode.json` |
 | Pi | 原生读取 | 原生读取 | 通过 `pi-mcp-adapter` 兼容读取 |
-| WorkBuddy | 映射到 `.codebuddy/rules/agent21.md` | 映射到 `.codebuddy/skills/` | 原生读取根 `.mcp.json` |
+| WorkBuddy | 原生读取根 `AGENTS.md` | 映射到 `.codebuddy/skills/` | 原生读取根 `.mcp.json` |
 | Qoder | 原生读取 | 映射到 `.qoder/skills/` | 原生读取根 `.mcp.json` |
 
 Agent21 不会安装这些 Agent 或第三方扩展。Pi MCP 需由用户显式安装：
@@ -126,7 +126,9 @@ pi install npm:pi-mcp-adapter
 
 Agent21 只检测 `pi-mcp-adapter` 是否可用，不执行它，也不会把“可检测”误报为已加载。
 WorkBuddy 沿用腾讯 CodeBuddy 的项目配置目录，因此不依赖推测的 CLI 名称；显式启用后即可同步
-`.codebuddy/` 项目配置。其他已启用但本机找不到可执行文件的 Agent 会被标记为 `skipped`。
+`.codebuddy/skills/`。当根目录没有 `CODEBUDDY.md` 时，WorkBuddy 原生读取 `AGENTS.md`；若两者同时存在，
+`agent21 doctor` 会报告 `CODEBUDDY.md` 遮蔽统一指令。其他已启用但本机找不到可执行文件的 Agent 会被标记为
+`skipped`。
 
 ## 安全与冲突处理
 

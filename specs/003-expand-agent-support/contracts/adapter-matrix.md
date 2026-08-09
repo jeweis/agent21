@@ -7,7 +7,7 @@
 | Cursor | `cursor` | native | native | transform | `.cursor/mcp.json` |
 | OpenCode | `opencode` | native | native | transform | `opencode.json` |
 | Pi | `pi` + `pi-mcp-adapter` for MCP | native | native | compatible | none |
-| WorkBuddy | configuration-only | compatible | compatible | native | `.codebuddy/rules/agent21.md`, `.codebuddy/skills` |
+| WorkBuddy | configuration-only | native | compatible | native | `.codebuddy/skills` |
 | Qoder | `qodercli` | native | compatible | native | `.qoder/skills` |
 
 ## Rules

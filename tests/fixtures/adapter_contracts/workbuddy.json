@@ -3,13 +3,12 @@
   "agent": "workbuddy",
   "status": "implemented",
   "capabilities": {
-    "instructions": {"mode": "compatible", "notes": "映射到 .codebuddy/rules/agent21.md。"},
+    "instructions": {"mode": "native", "notes": "根目录无 CODEBUDDY.md 时原生读取 AGENTS.md。"},
     "skills": {"mode": "compatible", "notes": "映射到 .codebuddy/skills。"},
     "mcp": {"mode": "native", "notes": "原生复用根 .mcp.json。"}
   },
   "source_inputs": ["AGENTS.md", ".agents/skills", ".mcp.json"],
   "managed_outputs": [
-    {"path": ".codebuddy/rules/agent21.md", "kind": "file", "managed": true, "snapshot": true},
     {"path": ".codebuddy/skills", "kind": "directory", "managed": true, "snapshot": true}
   ],
   "platform_modes": {

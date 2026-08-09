@@ -34,6 +34,7 @@ unknown key: rejected
 | `implemented` | boolean | 契约和测试均存在时为 true |
 | `executable` | string/null | `null` 表示 configuration-only，不以 CLI availability 阻止同步 |
 | `mcp_dependency` | DependencyRequirement/null | Pi 使用，其他 Agent 为空 |
+| `instructions_blocker` | path/null | WorkBuddy 使用 `CODEBUDDY.md`，存在时表示根 `AGENTS.md` 被遮蔽 |
 
 ## DependencyRequirement
 
@@ -75,11 +76,11 @@ missing        -> unsupported/skipped with install hint
 | Agent | Target | Kind | Mode | Source |
 | --- | --- | --- | --- | --- |
 | OpenCode | `opencode.json` | file | transform | `.mcp.json` |
-| WorkBuddy | `.codebuddy/rules/agent21.md` | file | copy | `AGENTS.md` |
 | WorkBuddy | `.codebuddy/skills` | directory/symlink | copy/symlink | `.agents/skills` |
 | Qoder | `.qoder/skills` | directory/symlink | copy/symlink | `.agents/skills` |
 
-Pi、WorkBuddy MCP、Qoder instructions/MCP 和 OpenCode instructions/Skills 为 native/compatible-without-output，不创建 artifact。
+Pi、WorkBuddy instructions/MCP、Qoder instructions/MCP 和 OpenCode instructions/Skills 为
+native/compatible-without-output，不创建 artifact。
 
 ## HealthCheckResult additions
 
@@ -87,6 +88,7 @@ Pi、WorkBuddy MCP、Qoder instructions/MCP 和 OpenCode instructions/Skills 为
 | --- | --- | --- |
 | `agent.executable` | qoder 等 CLI Agent | info/unsupported |
 | `agent.configuration` | workbuddy | info，说明 installation 不可由 CLI 确认 |
+| `agent.instructions` | `workbuddy:CODEBUDDY.md` | blocked，说明 `AGENTS.md` fallback 被遮蔽 |
 | `agent.dependency` | `pi:pi-mcp-adapter` | pass/unsupported |
 | `artifact.drift` | 新增托管目标 | pass/blocked |
 

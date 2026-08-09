@@ -61,8 +61,9 @@ def test_configuration_only_workbuddy_syncs_without_executable(tmp_path: Path) -
     first = sync_project(tmp_path, available_agents={"workbuddy": False})
     second = sync_project(tmp_path, available_agents={"workbuddy": False})
 
-    assert first.created == [".codebuddy/rules/agent21.md", ".codebuddy/skills"]
-    assert second.unchanged == [".codebuddy/rules/agent21.md", ".codebuddy/skills"]
+    assert first.created == [".codebuddy/skills"]
+    assert second.unchanged == [".codebuddy/skills"]
+    assert not (tmp_path / ".codebuddy/rules/agent21.md").exists()
     assert not (tmp_path / ".codebuddy/.mcp.json").exists()
 
 

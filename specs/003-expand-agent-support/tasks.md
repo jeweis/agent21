@@ -87,13 +87,13 @@
 
 ### Tests for User Story 3
 
-- [X] T024 [P] [US3] 为 WorkBuddy configuration-only capability、`.codebuddy/rules/agent21.md` 与 `.codebuddy/skills` 规划添加失败测试到 `tests/adapters/test_workbuddy_adapter.py`
+- [X] T024 [P] [US3] 为 WorkBuddy configuration-only capability、原生 `AGENTS.md` 与 `.codebuddy/skills` 规划添加失败测试到 `tests/adapters/test_workbuddy_adapter.py`
 - [X] T025 [P] [US3] 为 WorkBuddy 初始化、dry-run、幂等同步、根 MCP 原生复用和 doctor 添加失败集成测试到 `tests/integration/test_expanded_agent_workflows.py`
-- [X] T026 [P] [US3] 为 `.codebuddy/rules/` 与 `.codebuddy/skills/` 未托管同名内容保护添加失败测试到 `tests/integration/test_sync_workflow.py`
+- [X] T026 [P] [US3] 为 `.codebuddy/skills/` 未托管同名内容保护和不生成指令副本添加失败测试到 `tests/integration/test_sync_workflow.py`
 
 ### Implementation for User Story 3
 
-- [X] T027 [US3] 创建 `src/agent21/adapters/workbuddy.py`，只规划 `.codebuddy/rules/agent21.md` 和 `.codebuddy/skills`，不得创建 MCP 副本或写 `~/.codebuddy`
+- [X] T027 [US3] 创建 `src/agent21/adapters/workbuddy.py`，只规划 `.codebuddy/skills`，不得创建指令/MCP 副本或写 `~/.codebuddy`
 - [X] T028 [US3] 在 `src/agent21/adapters/__init__.py` 注册 WorkBuddy adapter，并让 T024-T026 在 copy、symlink 和 auto 适用场景通过
 - [X] T029 [US3] 连续执行 20 次 WorkBuddy 同输入同步测试，并运行 `uv run pytest tests/adapters/test_workbuddy_adapter.py tests/integration/test_expanded_agent_workflows.py tests/integration/test_sync_workflow.py`
 
@@ -151,4 +151,3 @@
 2. 依次交付 OpenCode MCP、Pi adapter、WorkBuddy、Qoder，每个故事独立验证。
 3. 最后统一更新公共文档，运行 PR/Main/Package 门禁和 quickstart。
 4. 不自动安装第三方 adapter、不修改用户全局配置、不发布未经验证的能力声明。
-

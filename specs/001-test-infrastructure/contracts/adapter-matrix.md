@@ -10,7 +10,7 @@
 | Cursor | implemented | native | native | transform | yes | 指令与 Skills 直接复用，MCP 转换为 Cursor JSON |
 | OpenCode | implemented | native | native | transform | yes | MCP 转换为项目 opencode.json |
 | Pi | implemented | native | native | compatible | yes | pi-mcp-adapter 直接消费根 MCP 配置 |
-| WorkBuddy | implemented | compatible | compatible | native | yes | 复用 .codebuddy 项目规则和 Skills 体系 |
+| WorkBuddy | implemented | native | compatible | native | yes | 根 AGENTS.md/MCP 原生读取，仅映射 .codebuddy/skills |
 | Qoder | implemented | native | compatible | native | yes | 仅映射 .qoder/skills |
 
 ## Status Rules
