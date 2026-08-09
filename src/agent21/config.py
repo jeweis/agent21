@@ -48,7 +48,9 @@ def save_config(project_root: str | Path, config: ProjectConfig) -> None:
     root = Path(project_root)
     path = safe_join(root, CONFIG_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(_dump_yaml(_config_to_data(config)), encoding="utf-8")
+    payload = _dump_yaml(_config_to_data(config)).encode("utf-8")
+    # Write as bytes so YAML newlines stay deterministic on Windows text mode.
+    path.write_bytes(payload)
 
 
 def _parse_config(raw: Any) -> ProjectConfig:

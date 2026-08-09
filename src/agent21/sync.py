@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from agent21 import __version__
 from agent21.adapters import REGISTRY, AdapterContext
@@ -124,12 +124,14 @@ def _adapter_mode(mode: SyncMode, root: Path) -> AdapterMode:
 def _to_file_plan(plan: AdapterPlan) -> FilePlan:
     """Convert a side-effect-free adapter plan to the filesystem transaction shape."""
 
+    target = Path(PurePath(plan.target).as_posix())
+    source = None if plan.source is None else Path(PurePath(plan.source).as_posix())
     return FilePlan(
         agent=str(plan.agent),
-        target=Path(str(plan.target)),
+        target=target,
         kind=str(plan.kind),
         mode=str(plan.mode),
-        source=None if plan.source is None else Path(str(plan.source)),
+        source=source,
         content=plan.content,
         digest=None,
     )
@@ -147,6 +149,8 @@ def _managed_artifact(
         path=validated.relative_target.as_posix(),
         kind=ArtifactKind(str(plan.kind)),
         mode=ArtifactMode(str(plan.mode)),
-        source=(str(source) if source is not None else str(config.mcp_source)),
+        source=(
+            source.as_posix() if source is not None else PurePath(config.mcp_source).as_posix()
+        ),
         digest=str(validated.digest),
     )

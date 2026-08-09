@@ -73,7 +73,7 @@ def test_transaction_marks_matching_managed_file_unchanged(tmp_path: Path) -> No
     """Managed outputs with matching digest are reported unchanged and not rewritten."""
 
     target = tmp_path / "CLAUDE.md"
-    target.write_text("# Claude\n", encoding="utf-8")
+    target.write_bytes(b"# Claude\n")
     before_mtime = target.stat().st_mtime_ns
     artifact = PlannedArtifact(
         agent="claude",
@@ -95,7 +95,7 @@ def test_transaction_normalizes_enum_artifact_kind_for_unchanged(
     """String-like model enums follow the same unchanged path as literals."""
 
     target = tmp_path / "CLAUDE.md"
-    target.write_text("# Claude\n", encoding="utf-8")
+    target.write_bytes(b"# Claude\n")
     artifact = PlannedArtifact(
         agent="claude",
         target=Path("CLAUDE.md"),
