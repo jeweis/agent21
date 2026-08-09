@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import pytest
 
@@ -38,6 +38,17 @@ def test_safe_join_rejects_parent_traversal(tmp_path: Path) -> None:
     assert safe_join(project.root, "nested/file.txt") == (tmp_path / "nested/file.txt").resolve()
     with pytest.raises(BoundaryError):
         safe_join(project.root, "../outside.txt")
+
+
+def test_safe_join_accepts_windows_path_objects(tmp_path: Path) -> None:
+    """Path-like values from Windows normalize to safe project-relative POSIX paths."""
+
+    project = Project(tmp_path)
+
+    assert (
+        safe_join(project.root, PureWindowsPath(".agents/config.yaml"))
+        == (tmp_path / ".agents/config.yaml").resolve()
+    )
 
 
 def test_safe_relative_path_rejects_symlink_escape(tmp_path: Path) -> None:

@@ -12,7 +12,11 @@ from tests.support.assertions import (
     redact_diagnostics,
 )
 from tests.support.cli_runner import CliResult
-from tests.support.project_factory import capture_protected_files, copy_project_fixture
+from tests.support.project_factory import (
+    ProtectedFileState,
+    capture_protected_files,
+    copy_project_fixture,
+)
 from tests.support.tree_snapshot import snapshot_tree
 
 
@@ -78,3 +82,27 @@ def test_assert_protected_files_unchanged_detects_byte_change(tmp_path: Path) ->
 
     with pytest.raises(AssertionError, match=r"notes/unmanaged\.txt"):
         assert_protected_files_unchanged(fixture.root, protected)
+
+
+def test_assert_protected_files_unchanged_reports_posix_path(tmp_path: Path) -> None:
+    """Failure diagnostics use POSIX separators for cross-platform contracts."""
+
+    root = tmp_path / "project"
+    notes = root / "notes"
+    notes.mkdir(parents=True)
+    target = notes / "unmanaged.txt"
+    target.write_text("before\n", encoding="utf-8")
+    protected = {
+        Path("notes") / "unmanaged.txt": ProtectedFileState(
+            Path("notes") / "unmanaged.txt",
+            "file",
+            b"before\n",
+        )
+    }
+    target.write_text("after\n", encoding="utf-8")
+
+    with pytest.raises(AssertionError) as exc_info:
+        assert_protected_files_unchanged(root, protected)
+
+    assert "notes/unmanaged.txt" in str(exc_info.value)
+    assert "notes\\unmanaged.txt" not in str(exc_info.value)

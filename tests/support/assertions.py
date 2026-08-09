@@ -80,9 +80,9 @@ def assert_protected_files_unchanged(
             current_type = "directory"
             payload = b""
         else:
-            raise AssertionError(f"protected path disappeared: {relative_path}")
+            raise AssertionError(f"protected path disappeared: {_format_path(relative_path)}")
         if current_type != state.file_type or payload != state.payload:
-            raise AssertionError(f"protected path changed: {relative_path}")
+            raise AssertionError(f"protected path changed: {_format_path(relative_path)}")
 
 
 def _redact_match(value: str) -> str:
@@ -108,3 +108,9 @@ def _format_snapshot_diff(before: TreeSnapshot, after: TreeSnapshot) -> str:
         if before_paths[path] != after_paths[path]
     )
     return f"tree snapshots differ; added={added}, removed={removed}, changed={changed}"
+
+
+def _format_path(path: Path) -> str:
+    """Render assertion paths with POSIX separators on every platform."""
+
+    return path.as_posix()

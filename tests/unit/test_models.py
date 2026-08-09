@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import PureWindowsPath
+
 import pytest
 
 from agent21.errors import Agent21Error, BoundaryError, classify_exit
@@ -33,6 +35,21 @@ def test_project_path_validation_rejects_escape_and_absolute_paths() -> None:
     for value in ("/tmp/outside", "../outside", "nested/../../outside", "C:/outside"):
         with pytest.raises(BoundaryError):
             validate_project_path(value)
+
+
+def test_project_path_validation_normalizes_windows_path_objects() -> None:
+    """Internal Windows Path-like values are normalized before validation."""
+
+    path = PureWindowsPath(".agents/config.yaml")
+
+    assert validate_project_path(path) == ".agents/config.yaml"
+
+
+def test_project_path_validation_rejects_backslash_strings() -> None:
+    """User-provided strings must use explicit POSIX separators."""
+
+    with pytest.raises(BoundaryError, match="POSIX separators"):
+        validate_project_path(r".agents\config.yaml")
 
 
 def test_agent_slug_validation_allows_only_registered_agents() -> None:

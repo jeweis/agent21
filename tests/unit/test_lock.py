@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import errno
 import json
 import os
 import time
@@ -49,6 +50,30 @@ def test_inspect_lock_marks_dead_pid_stale(tmp_path: Path) -> None:
     assert diagnostic.status == "blocked"
     assert diagnostic.stale is True
     assert diagnostic.subject == ".agents/.lock"
+
+
+def test_inspect_lock_marks_windows_invalid_pid_error_stale(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Windows invalid-PID errors mean the recorded owner is stale."""
+
+    lock_path = tmp_path / ".agents" / ".lock"
+    lock_path.parent.mkdir()
+    lock_path.write_text(
+        json.dumps({"pid": 999999999, "command": "sync", "created_at": time.time()}),
+        encoding="utf-8",
+    )
+
+    def raise_invalid_pid(pid: int, signal: int) -> None:
+        raise OSError(errno.EINVAL, "invalid pid")
+
+    monkeypatch.setattr(os, "kill", raise_invalid_pid)
+
+    diagnostic = inspect_lock(tmp_path)
+
+    assert diagnostic.status == "blocked"
+    assert diagnostic.stale is True
 
 
 def test_inspect_lock_reports_missing_lock_as_pass(tmp_path: Path) -> None:

@@ -15,6 +15,8 @@ from agent21.fs import (
     file_digest,
     prevalidate_artifacts,
 )
+from agent21.models import ArtifactKind as ModelArtifactKind
+from agent21.models import ArtifactMode as ModelArtifactMode
 
 
 def test_transaction_creates_file_and_cleans_temporary_state(tmp_path: Path) -> None:
@@ -85,6 +87,26 @@ def test_transaction_marks_matching_managed_file_unchanged(tmp_path: Path) -> No
 
     assert result.unchanged == (Path("CLAUDE.md"),)
     assert target.stat().st_mtime_ns == before_mtime
+
+
+def test_transaction_normalizes_enum_artifact_kind_for_unchanged(
+    tmp_path: Path,
+) -> None:
+    """String-like model enums follow the same unchanged path as literals."""
+
+    target = tmp_path / "CLAUDE.md"
+    target.write_text("# Claude\n", encoding="utf-8")
+    artifact = PlannedArtifact(
+        agent="claude",
+        target=Path("CLAUDE.md"),
+        kind=ModelArtifactKind.FILE,
+        mode=ModelArtifactMode.TRANSFORM,
+        content=b"# Claude\n",
+    )
+
+    result = apply_transaction(tmp_path, [artifact], managed_paths={Path("CLAUDE.md")})
+
+    assert result.unchanged == (Path("CLAUDE.md"),)
 
 
 def test_transaction_rolls_back_applied_file_when_later_replace_fails(tmp_path: Path) -> None:

@@ -127,8 +127,8 @@ def _to_file_plan(plan: AdapterPlan) -> FilePlan:
     return FilePlan(
         agent=str(plan.agent),
         target=Path(str(plan.target)),
-        kind=str(plan.kind),  # type: ignore[arg-type]
-        mode=str(plan.mode),  # type: ignore[arg-type]
+        kind=str(plan.kind),
+        mode=str(plan.mode),
         source=None if plan.source is None else Path(str(plan.source)),
         content=plan.content,
         digest=None,

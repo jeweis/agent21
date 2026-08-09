@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import errno
 import json
 import os
 import time
@@ -137,8 +138,8 @@ def _is_stale_pid(pid: object) -> bool:
         return True
     except PermissionError:
         return False
-    except OSError:
-        return False
+    except OSError as exc:
+        return _is_missing_process_error(exc)
     return False
 
 
@@ -148,3 +149,11 @@ def _is_stale_age(created_at: object, stale_after_seconds: int) -> bool:
     if not isinstance(created_at, int | float):
         return True
     return time.time() - float(created_at) > stale_after_seconds
+
+
+def _is_missing_process_error(exc: OSError) -> bool:
+    """Classify platform-specific errors for a PID that is not alive."""
+
+    if exc.errno in {errno.ESRCH, errno.EINVAL}:
+        return True
+    return getattr(exc, "winerror", None) == 87

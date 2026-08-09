@@ -18,8 +18,10 @@ from pathlib import Path, PurePosixPath
 from typing import Literal
 from uuid import uuid4
 
-ArtifactKind = Literal["file", "directory", "symlink"]
-ArtifactMode = Literal["copy", "symlink", "transform"]
+ArtifactKind = Literal["file", "directory", "symlink"] | str
+ArtifactMode = Literal["copy", "symlink", "transform"] | str
+_ARTIFACT_KINDS = frozenset(("file", "directory", "symlink"))
+_ARTIFACT_MODES = frozenset(("copy", "symlink", "transform", "native"))
 
 
 class TransactionError(RuntimeError):
@@ -175,12 +177,13 @@ def prevalidate_artifacts(
             raise ArtifactConflictError(f"duplicate planned target: {relative_target.as_posix()}")
         seen.add(relative_target)
         target = resolve_inside_project(project_root, relative_target)
+        kind = _artifact_kind_value(plan.kind)
         source = _validate_source(project_root, plan)
         digest = plan.digest or _planned_digest(project_root, plan, source)
         exists = target.exists() or target.is_symlink()
         if exists and relative_target not in managed:
             raise ArtifactConflictError(f"unmanaged target conflict: {relative_target.as_posix()}")
-        unchanged = exists and _existing_digest(target, plan.kind) == digest
+        unchanged = exists and _existing_digest(target, kind) == digest
         validated.append(
             ValidatedArtifact(plan, relative_target, target, source, digest, unchanged, exists)
         )
@@ -238,7 +241,9 @@ def apply_transaction(
 def _validate_source(project_root: Path, plan: PlannedArtifact) -> Path | None:
     """Validate source presence and project boundary for copy/symlink plans."""
 
-    if plan.kind in {"directory", "symlink"} or plan.mode in {"copy", "symlink"}:
+    kind = _artifact_kind_value(plan.kind)
+    mode = _artifact_mode_value(plan.mode)
+    if kind in {"directory", "symlink"} or mode in {"copy", "symlink"}:
         if plan.source is None:
             raise ArtifactConflictError(f"source is required for {plan.target}")
         source = resolve_inside_project(project_root, plan.source)
@@ -253,7 +258,7 @@ def _validate_source(project_root: Path, plan: PlannedArtifact) -> Path | None:
 def _planned_digest(project_root: Path, plan: PlannedArtifact, source: Path | None) -> str:
     """Compute the digest that will exist after applying a plan."""
 
-    if plan.kind == "symlink":
+    if _artifact_kind_value(plan.kind) == "symlink":
         if source is None:
             raise ArtifactConflictError(f"source is required for {plan.target}")
         target_parent = resolve_inside_project(project_root, plan.target).parent
@@ -286,7 +291,7 @@ def _stage_artifacts(
     for item in artifacts:
         stage_path = staging_root / item.relative_target
         stage_path.parent.mkdir(parents=True, exist_ok=True)
-        if item.plan.kind == "symlink":
+        if _artifact_kind_value(item.plan.kind) == "symlink":
             if item.absolute_source is None:
                 raise ArtifactConflictError(f"source is required for {item.relative_target}")
             link_text = os.path.relpath(item.absolute_source, item.absolute_target.parent)
@@ -391,3 +396,21 @@ def _remove_empty_tmp(tmp_root: Path) -> None:
         tmp_root.parent.rmdir()
     except OSError:
         pass
+
+
+def _artifact_kind_value(kind: object) -> ArtifactKind:
+    """Normalize string-like enum artifact kinds before branch comparisons."""
+
+    value = getattr(kind, "value", kind)
+    if not isinstance(value, str) or value not in _ARTIFACT_KINDS:
+        raise ArtifactConflictError(f"unsupported artifact kind: {value}")
+    return value
+
+
+def _artifact_mode_value(mode: object) -> str:
+    """Normalize string-like enum artifact modes before branch comparisons."""
+
+    value = getattr(mode, "value", mode)
+    if not isinstance(value, str) or value not in _ARTIFACT_MODES:
+        raise ArtifactConflictError(f"unsupported artifact mode: {value}")
+    return value

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from agent21.errors import BoundaryError
 from agent21.models import validate_project_path
@@ -20,18 +20,18 @@ class Project:
     def __post_init__(self) -> None:
         object.__setattr__(self, "root", self.root.resolve())
 
-    def join(self, relative_path: str | Path) -> Path:
+    def join(self, relative_path: str | PurePath) -> Path:
         """Resolve a project-relative path and enforce containment."""
 
         return safe_join(self.root, relative_path)
 
-    def display(self, path: str | Path) -> str:
+    def display(self, path: str | PurePath) -> str:
         """Format a path relative to this project root."""
 
         return display_path(self.root, path)
 
 
-def find_project_root(start: str | Path = ".") -> Path:
+def find_project_root(start: str | PurePath = ".") -> Path:
     """Find the nearest parent with project markers, or return the start directory."""
 
     current = Path(start).resolve()
@@ -43,7 +43,7 @@ def find_project_root(start: str | Path = ".") -> Path:
     return current
 
 
-def safe_join(project_root: str | Path, relative_path: str | Path) -> Path:
+def safe_join(project_root: str | PurePath, relative_path: str | PurePath) -> Path:
     """Join a project-relative value to the root after lexical validation."""
 
     value = validate_project_path(relative_path)
@@ -52,7 +52,7 @@ def safe_join(project_root: str | Path, relative_path: str | Path) -> Path:
     return candidate.resolve(strict=False)
 
 
-def safe_relative_path(project_root: str | Path, candidate: str | Path) -> Path:
+def safe_relative_path(project_root: str | PurePath, candidate: str | PurePath) -> Path:
     """Resolve symlinks and reject candidates outside the project root."""
 
     root = Path(project_root).resolve()
@@ -66,7 +66,7 @@ def safe_relative_path(project_root: str | Path, candidate: str | Path) -> Path:
     return unresolved
 
 
-def display_path(project_root: str | Path, path: str | Path) -> str:
+def display_path(project_root: str | PurePath, path: str | PurePath) -> str:
     """Return a stable POSIX display path relative to the project when possible."""
 
     root = Path(project_root).resolve()

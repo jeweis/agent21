@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import pytest
 
@@ -114,6 +114,7 @@ def test_manifest_ownership_lookup_uses_normalized_paths() -> None:
     manifest = Manifest(agent21_version="0.1.0", managed_artifacts=[artifact], skills=[])
 
     assert manifest.owner_of(Path(".codex") / "config.toml") == artifact
+    assert manifest.owner_of(PureWindowsPath(".codex/config.toml")) == artifact
     assert manifest.owner_of("missing.txt") is None
 
 

@@ -6,7 +6,7 @@ import hashlib
 import re
 from dataclasses import dataclass, field
 from enum import StrEnum
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePath, PurePosixPath
 
 from agent21.errors import BoundaryError
 
@@ -193,7 +193,7 @@ class Manifest:
             skills=sorted(self.skills, key=lambda skill: skill.name),
         )
 
-    def owner_of(self, path: str | Path) -> ManagedArtifact | None:
+    def owner_of(self, path: ProjectPathValue) -> ManagedArtifact | None:
         """Return the managed artifact owning a normalized project path."""
 
         normalized = normalize_project_path(path)
@@ -296,13 +296,18 @@ def validate_agent_slug(agent: str) -> str:
     return agent
 
 
-def normalize_project_path(path: str | Path) -> str:
+ProjectPathValue = str | PurePath
+
+
+def normalize_project_path(path: ProjectPathValue) -> str:
     """Convert a relative path value to the manifest's POSIX representation."""
 
-    return Path(path).as_posix()
+    if isinstance(path, str):
+        return path
+    return path.as_posix()
 
 
-def validate_project_path(path: str | Path) -> str:
+def validate_project_path(path: ProjectPathValue) -> str:
     """Validate a project-relative POSIX path string."""
 
     value = normalize_project_path(path)
@@ -310,7 +315,7 @@ def validate_project_path(path: str | Path) -> str:
         raise BoundaryError("project path must not be empty")
     if value.startswith("/") or _WINDOWS_DRIVE_RE.match(value):
         raise BoundaryError(f"path is outside project: {value}")
-    if "\\" in str(path):
+    if isinstance(path, str) and "\\" in path:
         raise BoundaryError(f"path must use POSIX separators: {value}")
     parts = PurePosixPath(value).parts
     if any(part == ".." for part in parts):
