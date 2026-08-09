@@ -28,8 +28,11 @@
 | sdist + wheel metadata | PASS |
 | Clean wheel install and all-command smoke | PASS |
 | GitHub workflow YAML and gate contracts | PASS |
+| Remote Main Gate 31307873735 on 9c16328 | PASS (8-platform matrix) |
+| Lore commits eb74981 / e431604 / 9c16328 | PASS (Windows + install_skill) |
 
 ## Remote Follow-up
 
 推送后由 GitHub Actions 执行 Linux、macOS、Windows 以及 Python 3.11–3.14 的声明矩阵。
 PyPI 发布使用受保护的 `pypi` environment 与 OIDC Trusted Publishing，不在仓库存放 token。
+Pending publisher 在 PyPI 端就绪，Release Gate 等待 `v0.1.0` tag 触发。
