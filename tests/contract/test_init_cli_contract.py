@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from typer.testing import CliRunner
 
 from agent21.cli import app
@@ -13,9 +15,10 @@ def test_init_help_exposes_non_interactive_options() -> None:
     result = CliRunner().invoke(app, ["init", "--help"])
 
     assert result.exit_code == 0
-    assert "--agents" in result.stdout
-    assert "--mode" in result.stdout
-    assert "--yes" in result.stdout
+    output = re.sub(r"\x1b\[[0-9;]*m", "", result.stdout)
+    assert "--agents" in output
+    assert "--mode" in output
+    assert "--yes" in output
 
 
 def test_init_rejects_unknown_agent_as_operational_failure(tmp_path: object) -> None:
