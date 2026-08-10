@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent21"
-version = "0.1.4"
+version = "0.1.5"
 description = "Project-level configuration and synchronization for AI coding agents"
 readme = "README.md"
 requires-python = ">=3.11"
