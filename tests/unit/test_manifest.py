@@ -24,7 +24,7 @@ def test_save_manifest_sorts_artifacts_and_skills(tmp_path: Path) -> None:
     """Manifest output is deterministic for stable reviews and idempotency."""
 
     manifest = Manifest(
-        agent21_version="0.1.0",
+        agent21="0.1.0",
         managed_artifacts=[
             ManagedArtifact(
                 "pi",
@@ -83,7 +83,7 @@ def test_load_manifest_rejects_duplicate_artifact_paths(tmp_path: Path) -> None:
         "\n".join(
             [
                 "schema_version: 1",
-                "agent21_version: 0.1.0",
+                "agent21: 0.1.0",
                 "managed_artifacts:",
                 "  - {agent: codex, path: target.txt, kind: file, "
                 f"mode: copy, source: AGENTS.md, digest: {digest}}}",
@@ -111,11 +111,36 @@ def test_manifest_ownership_lookup_uses_normalized_paths() -> None:
         ".mcp.json",
         digest_bytes(b"{}"),
     )
-    manifest = Manifest(agent21_version="0.1.0", managed_artifacts=[artifact], skills=[])
+    manifest = Manifest(agent21="0.1.0", managed_artifacts=[artifact], skills=[])
 
     assert manifest.owner_of(Path(".codex") / "config.toml") == artifact
     assert manifest.owner_of(PureWindowsPath(".codex/config.toml")) == artifact
     assert manifest.owner_of("missing.txt") is None
+
+
+def test_load_manifest_accepts_legacy_agent21_version(tmp_path: Path) -> None:
+    """Legacy manifests using agent21_version still load into the agent21 marker."""
+
+    path = tmp_path / MANIFEST_PATH
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        "schema_version: 1\nagent21_version: 0.1.4\nmanaged_artifacts: []\nskills: []\n",
+        encoding="utf-8",
+    )
+
+    manifest = load_manifest(tmp_path)
+
+    assert manifest.agent21 == "0.1.4"
+
+
+def test_save_manifest_writes_agent21_identity_field(tmp_path: Path) -> None:
+    """Manifest top-level carries an agent21 identity marker."""
+
+    save_manifest(tmp_path, Manifest(agent21="0.1.5", managed_artifacts=[], skills=[]))
+
+    text = (tmp_path / MANIFEST_PATH).read_text(encoding="utf-8")
+    assert "agent21: 0.1.5" in text
+    assert "agent21_version" not in text
 
 
 def test_digest_path_detects_file_drift(tmp_path: Path) -> None:

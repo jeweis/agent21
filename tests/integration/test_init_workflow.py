@@ -74,3 +74,45 @@ def test_init_without_agents_keeps_existing_selection(tmp_path: Path) -> None:
 
     assert (tmp_path / ".agents/config.yaml").read_bytes() == config_before
     assert set(result.enabled_agents) == {"opencode"}
+
+
+@pytest.mark.integration
+def test_init_creates_agents_readme_guide(tmp_path: Path) -> None:
+    """.agents/README.md is created with the managed guidance block."""
+
+    initialize_project(tmp_path, agents=("opencode",), mode="auto")
+
+    readme = tmp_path / ".agents/README.md"
+    assert readme.is_file()
+    content = readme.read_text(encoding="utf-8")
+    assert "<!-- AGENT21 START -->" in content
+    assert "agent21 sync" in content
+    assert "agent21 status" in content
+
+
+@pytest.mark.integration
+def test_init_readme_is_idempotent(tmp_path: Path) -> None:
+    """Repeated init does not duplicate the managed README block."""
+
+    initialize_project(tmp_path, agents=("opencode",), mode="auto")
+    first = (tmp_path / ".agents/README.md").read_bytes()
+
+    initialize_project(tmp_path, agents=("opencode",), mode="auto")
+
+    assert (tmp_path / ".agents/README.md").read_bytes() == first
+
+
+@pytest.mark.integration
+def test_init_readme_appends_to_existing_user_content(tmp_path: Path) -> None:
+    """Existing README without the marker gets the block appended, never replaced."""
+
+    initialize_project(tmp_path, agents=("opencode",), mode="auto")
+    readme = tmp_path / ".agents/README.md"
+    readme.write_text("# My custom notes\n", encoding="utf-8")
+
+    initialize_project(tmp_path, agents=("opencode",), mode="auto")
+
+    content = readme.read_text(encoding="utf-8")
+    assert content.startswith("# My custom notes")
+    assert content.count("<!-- AGENT21 START -->") == 1
+    assert "agent21 sync" in content

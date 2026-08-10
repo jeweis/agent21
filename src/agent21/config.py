@@ -7,6 +7,7 @@ from typing import Any, cast
 
 import yaml
 
+from agent21 import __version__
 from agent21.errors import BoundaryError, ConfigError
 from agent21.models import (
     LEGACY_AGENTS,
@@ -57,9 +58,12 @@ def save_config(project_root: str | Path, config: ProjectConfig) -> None:
 def _parse_config(raw: Any) -> ProjectConfig:
     if not isinstance(raw, dict):
         raise ConfigError("config must be a mapping")
-    _require_fields(raw, {"schema_version", "agents", "sync", "sources"}, "config")
+    allowed = {"schema_version", "agent21", "agents", "sync", "sources"}
+    _require_fields(raw, {"schema_version", "agents", "sync", "sources"}, "config", allowed=allowed)
     if raw["schema_version"] != 1:
         raise ConfigError("schema_version must be 1")
+    if "agent21" in raw and not isinstance(raw["agent21"], str):
+        raise ConfigError("agent21 must be a string")
     agents = _parse_agents(raw["agents"])
     sync = _mapping(raw["sync"], "sync")
     _require_fields(sync, {"mode"}, "sync")
@@ -100,6 +104,7 @@ def _parse_agents(raw: Any) -> dict[str, AgentSelection]:
 def _config_to_data(config: ProjectConfig) -> dict[str, Any]:
     return {
         "schema_version": config.schema_version,
+        "agent21": __version__,
         "agents": {
             agent: {"enabled": config.agents[agent].enabled} for agent in sorted(config.agents)
         },
@@ -116,9 +121,16 @@ def _dump_yaml(data: dict[str, Any]) -> str:
     return yaml.safe_dump(data, sort_keys=False, allow_unicode=False)
 
 
-def _require_fields(raw: dict[Any, Any], expected: set[str], subject: str) -> None:
+def _require_fields(
+    raw: dict[Any, Any],
+    expected: set[str],
+    subject: str,
+    *,
+    allowed: set[str] | None = None,
+) -> None:
+    allowed_fields = allowed or expected
     keys = set(raw)
-    unknown = sorted(keys - expected)
+    unknown = sorted(keys - allowed_fields)
     missing = sorted(expected - keys)
     if unknown:
         raise ConfigError(f"unknown field in {subject}: {unknown[0]}")

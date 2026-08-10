@@ -95,7 +95,7 @@ def sync_project(
         artifact for artifact in manifest.managed_artifacts if artifact.agent in unavailable_agents
     )
     next_manifest = Manifest(
-        agent21_version=__version__,
+        agent21=__version__,
         managed_artifacts=artifacts,
         skills=list(manifest.skills),
     ).sorted()

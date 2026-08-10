@@ -3,9 +3,10 @@
   "title": "Agent21 Project Configuration v1 Additive Agent Expansion",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "agents", "sync", "sources"],
+  "required": ["schema_version", "agent21", "agents", "sync", "sources"],
   "properties": {
     "schema_version": {"const": 1},
+    "agent21": {"type": "string", "minLength": 1},
     "agents": {
       "type": "object",
       "additionalProperties": false,

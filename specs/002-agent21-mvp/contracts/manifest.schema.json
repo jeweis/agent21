@@ -3,10 +3,10 @@
   "title": "Agent21 Manifest v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "agent21_version", "managed_artifacts", "skills"],
+  "required": ["schema_version", "agent21", "managed_artifacts", "skills"],
   "properties": {
     "schema_version": {"const": 1},
-    "agent21_version": {"type": "string", "minLength": 1},
+    "agent21": {"type": "string", "minLength": 1},
     "managed_artifacts": {
       "type": "array",
       "items": {"$ref": "#/$defs/artifact"}

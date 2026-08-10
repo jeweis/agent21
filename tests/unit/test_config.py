@@ -63,6 +63,30 @@ def test_save_config_writes_deterministic_yaml(tmp_path: Path) -> None:
     assert b"schema_version: 1\n" in first
 
 
+def test_save_config_writes_agent21_identity_field(tmp_path: Path) -> None:
+    """Config top-level carries an agent21 identity marker."""
+
+    save_config(tmp_path, default_config())
+
+    text = (tmp_path / CONFIG_PATH).read_text(encoding="utf-8")
+    assert "agent21: " in text
+    assert text.index("agent21:") < text.index("agents:")
+
+
+def test_load_config_accepts_missing_agent21_field(tmp_path: Path) -> None:
+    """Legacy config without agent21 still loads (marker is additive)."""
+
+    save_config(tmp_path, default_config())
+    path = tmp_path / CONFIG_PATH
+    text = path.read_text(encoding="utf-8")
+    text = "\n".join(line for line in text.splitlines() if not line.startswith("agent21:"))
+    path.write_text(text + "\n", encoding="utf-8")
+
+    loaded = load_config(tmp_path)
+
+    assert loaded.schema_version == 1
+
+
 def test_load_config_rejects_unknown_top_level_field(tmp_path: Path) -> None:
     """Config parsing is strict so typos cannot silently change behavior."""
 
