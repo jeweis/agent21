@@ -63,7 +63,7 @@ agent21 --version
 | `agent21 disable --agents A,B [--dry-run]` | 禁用 Agent 并回收其托管产物 |
 | `agent21 status` | 查看每个 Agent 的启用状态、可用性与托管产物 |
 | `agent21 sync --dry-run` | 校验并预览同步计划，不写入文件 |
-| `agent21 sync` | 将权威配置同步到已启用且本机可用的 Agent |
+| `agent21 sync` | 将权威配置同步到所有已启用的 Agent |
 | `agent21 doctor` | 只读检查配置、漂移、Skills、MCP、锁和中断事务 |
 | `agent21 skill install <source>` | 从本地目录或显式 Git URL 安装项目 Skill |
 | `agent21 skill list` | 列出 Agent21 管理的项目 Skills |
@@ -85,6 +85,13 @@ agent21 disable --agents cursor
 - `symlink`：始终使用符号链接
 
 启用状态与同步模式也可以在 `.agents/config.yaml` 中查看和调整。
+
+**两点说明**：
+
+- **启用即生成**：只要 Agent 在 config 中启用，`sync` 就会生成它的配置产物，
+  与本机是否安装对应 CLI 无关（未安装也可先同步，装好即可用）。
+- **接管替换**：目标路径（如 `.claude/skills`）若已存在但未被 agent21 托管，
+  `sync` 会用权威源内容接管替换它（事务内备份旧内容后写入），并记入托管清单。
 
 ## 管理项目 Skills
 

@@ -36,9 +36,11 @@ agent21 --help / --version
 - 未初始化：自动建立权威源（AGENTS.md、.agents/skills、.agents/config.yaml、
   .agents/manifest.yaml）后继续启用与同步。
 - 已初始化：合并启用（只增不减），`--mode` 不覆盖已有同步模式。
+- **生成规则**：只要 enabled 即生成配置产物，本机是否安装对应 CLI 不影响；
+  目标路径已存在但未托管时接管替换（事务内备份旧内容）。
 - 输出：`initialized Agent21 project` → `enabled: <names>` → 真源 `created/reused` →
-  同步 `created/updated/unchanged/skipped`。
-- 退出码 0（成功）；未知 Agent 名退出码 1。
+  同步 `created/updated/unchanged/retired/skipped`；存在 `blocked` 时一并输出并退出码非 0。
+- 退出码 0（成功）；未知 Agent 名或冲突退出码非 0。
 
 ### 交互选择（TTY、无 `--agents`）
 

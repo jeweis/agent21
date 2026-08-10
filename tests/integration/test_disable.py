@@ -9,7 +9,6 @@ from typer.testing import CliRunner
 
 from agent21.cli import app
 from agent21.config import load_config
-from agent21.models import REGISTERED_AGENTS
 
 runner = CliRunner()
 
@@ -39,10 +38,6 @@ def test_disable_retires_only_target_agent_outputs(
     """disable removes the target Agent's managed outputs and keeps others and user files."""
 
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(
-        "agent21.sync.detect_agents",
-        lambda: {agent: agent == "claude" for agent in REGISTERED_AGENTS},
-    )
     assert runner.invoke(app, ["--agents", "workbuddy,claude", "--mode", "copy"]).exit_code == 0
     custom = tmp_path / "custom.md"
     custom.write_text("manual\n", encoding="utf-8")

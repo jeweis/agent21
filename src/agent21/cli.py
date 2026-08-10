@@ -196,6 +196,10 @@ def _run_enable(agents_arg: str | None, mode: str) -> None:
     for category in ("created", "updated", "unchanged", "retired", "skipped"):
         for value in getattr(sync_result, category):
             typer.echo(f"{category}: {value}")
+    if sync_result.conflicts or sync_result.errors:
+        for value in sync_result.conflicts + sync_result.errors:
+            typer.echo(f"blocked: {value}", err=True)
+        raise typer.Exit(1)
 
 
 def _run_disable(agents_arg: str, dry_run: bool) -> None:

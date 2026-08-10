@@ -26,7 +26,7 @@ def test_all_seven_agents_sync_in_one_transaction(
     )
     monkeypatch.setattr("agent21.sync.executable_available", lambda command: True)
 
-    result = sync_project(tmp_path, available_agents={agent: True for agent in ALL_AGENTS})
+    result = sync_project(tmp_path)
 
     assert result.conflicts == []
     assert result.skipped == []
@@ -56,7 +56,7 @@ def test_skill_content_propagates_to_mapped_directories(
     content = "---\nname: demo\n---\n# Demo\n"
     (source / "SKILL.md").write_text(content, encoding="utf-8")
 
-    sync_project(tmp_path, available_agents={agent: agent != "workbuddy"})
+    sync_project(tmp_path)
 
     mapped = tmp_path / target_dir / "demo" / "SKILL.md"
     assert mapped.read_text(encoding="utf-8") == content
@@ -69,8 +69,8 @@ def test_opencode_mcp_sync_is_idempotent(tmp_path: Path) -> None:
     source = {"mcpServers": {"demo": {"command": "npx", "args": ["-y", "demo"]}}}
     (tmp_path / ".mcp.json").write_text(json.dumps(source), encoding="utf-8")
 
-    first = sync_project(tmp_path, available_agents={"opencode": True})
-    second = sync_project(tmp_path, available_agents={"opencode": True})
+    first = sync_project(tmp_path)
+    second = sync_project(tmp_path)
 
     assert first.created == ["opencode.json"]
     assert second.unchanged == ["opencode.json"]
@@ -82,7 +82,7 @@ def test_qoder_sync_maps_only_skills(tmp_path: Path) -> None:
 
     initialize_project(tmp_path, agents=("qoder",), mode="copy")
 
-    result = sync_project(tmp_path, available_agents={"qoder": True})
+    result = sync_project(tmp_path)
 
     assert result.created == [".qoder/skills"]
     assert not (tmp_path / ".qoder/AGENTS.md").exists()
@@ -100,7 +100,7 @@ def test_pi_sync_reports_missing_adapter_without_writes(
     )
     monkeypatch.setattr("agent21.sync.executable_available", lambda command: False)
 
-    result = sync_project(tmp_path, available_agents={"pi": True})
+    result = sync_project(tmp_path)
 
     assert result.created == []
     assert result.skipped == [

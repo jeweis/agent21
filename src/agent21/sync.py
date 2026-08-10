@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from pathlib import Path, PurePath
 
 from agent21 import __version__
@@ -36,16 +35,19 @@ from agent21.models import (
     PlannedArtifact as AdapterPlan,
 )
 from agent21.project import safe_join
-from agent21.scanner import detect_agents, executable_available
+from agent21.scanner import executable_available
 
 
 def sync_project(
     root: Path,
     *,
     dry_run: bool = False,
-    available_agents: Mapping[str, bool] | None = None,
 ) -> SyncResult:
-    """Plan, validate, and atomically synchronize all enabled available Agents."""
+    """Plan, validate, and atomically synchronize all enabled Agents.
+
+    只要 Agent 在 config 中 enabled 就生成其配置产物，本机是否安装对应 CLI
+    不影响生成（可用性仅作信息展示）。
+    """
 
     root = root.resolve()
     try:
@@ -53,7 +55,6 @@ def sync_project(
         manifest = load_manifest(root)
     except Agent21Error as exc:
         raise ConfigError(f"project not initialized: {exc}; run 'agent21' first") from exc
-    availability = dict(detect_agents() if available_agents is None else available_agents)
     mcp_path = safe_join(root, config.mcp_source)
     mcp_servers = load_mcp_config(mcp_path).servers if mcp_path.is_file() else {}
     context = AdapterContext(
@@ -63,14 +64,12 @@ def sync_project(
         mcp_servers=mcp_servers,
         sync_mode=_adapter_mode(config.sync_mode, root),
     )
-    adapter_plans, skipped, unavailable_agents = _collect_adapter_plans(
-        config, context, availability
-    )
+    adapter_plans, skipped = _collect_adapter_plans(config, context)
 
     file_plans = [_to_file_plan(plan) for plan in adapter_plans]
     managed_paths = [artifact.path for artifact in manifest.managed_artifacts]
     try:
-        validated = prevalidate_artifacts(root, file_plans, managed_paths=managed_paths)
+        validated = prevalidate_artifacts(root, file_plans)
     except ArtifactConflictError as exc:
         conflict = str(exc).rsplit(": ", 1)[-1]
         return SyncResult(skipped=skipped, conflicts=[conflict])
@@ -80,7 +79,7 @@ def sync_project(
         item.relative_target.as_posix() for item in validated if item.exists and not item.unchanged
     ]
     unchanged = [item.relative_target.as_posix() for item in validated if item.unchanged]
-    retired = _compute_retired(manifest.managed_artifacts, validated, unavailable_agents)
+    retired = _compute_retired(manifest.managed_artifacts, validated)
     if dry_run:
         return SyncResult(
             created=created,
@@ -91,9 +90,6 @@ def sync_project(
         )
 
     artifacts = [_managed_artifact(item.plan.agent, item, config) for item in validated]
-    artifacts.extend(
-        artifact for artifact in manifest.managed_artifacts if artifact.agent in unavailable_agents
-    )
     next_manifest = Manifest(
         version=__version__,
         managed_artifacts=artifacts,
@@ -122,38 +118,31 @@ def sync_project(
 def _compute_retired(
     managed_artifacts: list[ManagedArtifact],
     validated: tuple[ValidatedArtifact, ...],
-    unavailable_agents: set[str],
 ) -> list[str]:
-    """计算需回收的托管产物：不再计划 且 不属于 executable 不可用的 Agent。"""
+    """计算需回收的托管产物：不再被本次计划覆盖的旧托管目标。"""
 
     planned = {item.relative_target.as_posix() for item in validated}
-    return [
-        artifact.path
-        for artifact in managed_artifacts
-        if artifact.path not in planned and artifact.agent not in unavailable_agents
-    ]
+    return [artifact.path for artifact in managed_artifacts if artifact.path not in planned]
 
 
 def _collect_adapter_plans(
     config: ProjectConfig,
     context: AdapterContext,
-    availability: Mapping[str, bool],
-) -> tuple[list[AdapterPlan], list[str], set[str]]:
-    """Collect side-effect-free plans and precise skip diagnostics."""
+) -> tuple[list[AdapterPlan], list[str]]:
+    """Collect side-effect-free plans and precise skip diagnostics.
+
+    只要 Agent enabled 就收集其计划，不因本机缺少 CLI 而跳过；仅有 pi 的
+    可选 MCP 依赖缺失时给出信息性提示（pi 无托管产物，不阻塞生成）。
+    """
 
     adapter_plans = []
     skipped: list[str] = []
-    unavailable_agents: set[str] = set()
     for agent, selection in sorted(config.agents.items()):
         if not selection.enabled:
             continue
         adapter = REGISTRY.get(agent)
         if adapter is None or not adapter.capability.implemented:
             skipped.append(f"{agent}: adapter unsupported")
-            continue
-        if adapter.capability.executable is not None and not availability.get(agent, False):
-            skipped.append(f"{agent}: executable unavailable")
-            unavailable_agents.add(agent)
             continue
         dependency = adapter.capability.mcp_dependency
         if (
@@ -166,7 +155,7 @@ def _collect_adapter_plans(
                 f"action: {dependency.install_hint}"
             )
         adapter_plans.extend(adapter.plan(context))
-    return adapter_plans, skipped, unavailable_agents
+    return adapter_plans, skipped
 
 
 def _adapter_mode(mode: SyncMode, root: Path) -> AdapterMode:

@@ -15,12 +15,12 @@ def test_sync_retires_managed_artifact_of_disabled_agent(tmp_path: Path) -> None
     """A disabled Agent's managed output is removed on the next sync."""
 
     initialize_project(tmp_path, agents=("claude",), mode="copy")
-    sync_project(tmp_path, available_agents={"claude": True})
+    sync_project(tmp_path)
     assert (tmp_path / "CLAUDE.md").is_file()
 
     _disable_agent(tmp_path, "claude")
 
-    result = sync_project(tmp_path, available_agents={"claude": True})
+    result = sync_project(tmp_path)
 
     assert not (tmp_path / "CLAUDE.md").exists()
     assert not (tmp_path / ".claude" / "skills").exists()
@@ -32,10 +32,10 @@ def test_sync_dry_run_reports_retired_without_writing(tmp_path: Path) -> None:
     """Dry-run lists retired targets but leaves files and config untouched."""
 
     initialize_project(tmp_path, agents=("claude",), mode="copy")
-    sync_project(tmp_path, available_agents={"claude": True})
+    sync_project(tmp_path)
     _disable_agent(tmp_path, "claude")
 
-    result = sync_project(tmp_path, dry_run=True, available_agents={"claude": True})
+    result = sync_project(tmp_path, dry_run=True)
 
     assert result.retired == [".claude/skills", "CLAUDE.md"]
     assert (tmp_path / "CLAUDE.md").is_file()
@@ -47,9 +47,9 @@ def test_sync_keeps_retired_artifacts_of_unavailable_agents(tmp_path: Path) -> N
     """Executable-unavailable Agents keep their managed outputs (no orphan removal)."""
 
     initialize_project(tmp_path, agents=("qoder",), mode="copy")
-    sync_project(tmp_path, available_agents={"qoder": True})
+    sync_project(tmp_path)
 
-    result = sync_project(tmp_path, available_agents={"qoder": False})
+    result = sync_project(tmp_path)
 
     assert result.retired == []
     assert (tmp_path / ".qoder" / "skills").is_dir()

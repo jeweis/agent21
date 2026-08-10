@@ -17,13 +17,13 @@ def test_twenty_sync_runs_keep_tree_and_manifest_equivalent(tmp_path: Path) -> N
     """Identical authoritative inputs never accumulate output or manifest drift."""
 
     initialize_project(tmp_path, agents=("claude",), mode="copy")
-    first = sync_project(tmp_path, available_agents={"claude": True})
+    first = sync_project(tmp_path)
     assert first.created
     baseline_manifest = (tmp_path / MANIFEST_PATH).read_bytes()
     baseline_target = (tmp_path / "CLAUDE.md").read_bytes()
 
     for _ in range(19):
-        result = sync_project(tmp_path, available_agents={"claude": True})
+        result = sync_project(tmp_path)
         assert not result.created
         assert not result.updated
         assert result.unchanged
@@ -50,13 +50,12 @@ def test_expanded_agents_remain_idempotent_for_twenty_syncs(
     (tmp_path / ".mcp.json").write_text(
         json.dumps({"mcpServers": {"demo": {"command": "demo"}}}), encoding="utf-8"
     )
-    availability = {agent: agent != "workbuddy"}
-    first = sync_project(tmp_path, available_agents=availability)
+    first = sync_project(tmp_path)
     assert tuple(first.created) == expected_targets
     baseline_manifest = (tmp_path / MANIFEST_PATH).read_bytes()
 
     for _ in range(19):
-        result = sync_project(tmp_path, available_agents=availability)
+        result = sync_project(tmp_path)
         assert not result.created
         assert not result.updated
         assert tuple(result.unchanged) == expected_targets

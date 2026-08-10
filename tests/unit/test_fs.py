@@ -50,11 +50,11 @@ def test_prevalidation_rejects_project_escape(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ArtifactConflictError, match="outside project"):
-        prevalidate_artifacts(tmp_path, [artifact], managed_paths=set())
+        prevalidate_artifacts(tmp_path, [artifact])
 
 
-def test_prevalidation_rejects_unmanaged_conflict(tmp_path: Path) -> None:
-    """Existing unmanaged files block writes instead of being overwritten."""
+def test_prevalidation_adopts_existing_unmanaged_target(tmp_path: Path) -> None:
+    """Existing targets are adopted and replaced by the authoritative content."""
 
     (tmp_path / "CLAUDE.md").write_text("user content\n", encoding="utf-8")
     artifact = PlannedArtifact(
@@ -65,8 +65,11 @@ def test_prevalidation_rejects_unmanaged_conflict(tmp_path: Path) -> None:
         content=b"generated\n",
     )
 
-    with pytest.raises(ArtifactConflictError, match="unmanaged"):
-        prevalidate_artifacts(tmp_path, [artifact], managed_paths=set())
+    validated = prevalidate_artifacts(tmp_path, [artifact])
+
+    assert len(validated) == 1
+    assert validated[0].exists
+    assert not validated[0].unchanged
 
 
 def test_transaction_marks_matching_managed_file_unchanged(tmp_path: Path) -> None:

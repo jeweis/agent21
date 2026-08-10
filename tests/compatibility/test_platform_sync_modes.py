@@ -20,7 +20,7 @@ def test_auto_mode_creates_project_relative_skill_link_when_supported(
     initialize_project(root, agents=("claude",), mode="auto")
     monkeypatch.setattr("agent21.sync.supports_symlink", lambda _: True)
 
-    sync_project(root, available_agents={"claude": True})
+    sync_project(root)
 
     link = root / ".claude/skills"
     assert link.is_symlink()
@@ -39,7 +39,7 @@ def test_auto_mode_falls_back_to_copy_when_links_are_unavailable(
     (tmp_path / ".agents/skills/demo/SKILL.md").write_text("# Demo\n", encoding="utf-8")
     monkeypatch.setattr("agent21.sync.supports_symlink", lambda _: False)
 
-    sync_project(tmp_path, available_agents={"claude": True})
+    sync_project(tmp_path)
 
     target = tmp_path / ".claude/skills"
     assert target.is_dir()

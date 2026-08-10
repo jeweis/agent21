@@ -164,12 +164,13 @@ def supports_symlink(project_root: Path) -> bool:
 def prevalidate_artifacts(
     project_root: Path,
     artifacts: Iterable[PlannedArtifact],
-    *,
-    managed_paths: Iterable[Path | str],
 ) -> tuple[ValidatedArtifact, ...]:
-    """Validate all planned targets before any write begins."""
+    """Validate all planned targets before any write begins.
 
-    managed = {project_relative(path) for path in managed_paths}
+    目标已存在但不在托管清单（未托管）时允许 agent21 接管替换：Agent21 是
+    项目级配置的权威管理者，已存在的同名目标视为待接管，事务内备份旧内容后替换。
+    """
+
     validated: list[ValidatedArtifact] = []
     seen: set[Path] = set()
     for plan in sorted(artifacts, key=lambda item: project_relative(item.target).as_posix()):
@@ -182,8 +183,6 @@ def prevalidate_artifacts(
         source = _validate_source(project_root, plan)
         digest = plan.digest or _planned_digest(project_root, plan, source)
         exists = target.exists() or target.is_symlink()
-        if exists and relative_target not in managed:
-            raise ArtifactConflictError(f"unmanaged target conflict: {relative_target.as_posix()}")
         unchanged = exists and _existing_digest(target, kind) == digest
         validated.append(
             ValidatedArtifact(plan, relative_target, target, source, digest, unchanged, exists)
@@ -208,7 +207,7 @@ def apply_transaction(
     """
 
     root = project_root.resolve()
-    validated = prevalidate_artifacts(root, artifacts, managed_paths=managed_paths)
+    validated = prevalidate_artifacts(root, artifacts)
     changed = [item for item in validated if not item.unchanged]
     retired = _resolve_retired(root, retire, managed_paths)
     if not changed and not retired:

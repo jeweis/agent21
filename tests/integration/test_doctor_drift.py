@@ -16,7 +16,7 @@ def test_doctor_reports_managed_drift_with_agent_and_action(tmp_path: Path) -> N
     """A hand-edited generated file points users back to synchronization."""
 
     initialize_project(tmp_path, agents=("claude",), mode="copy")
-    sync_project(tmp_path, available_agents={"claude": True})
+    sync_project(tmp_path)
     (tmp_path / "CLAUDE.md").write_text("drifted\n", encoding="utf-8")
 
     drift = next(

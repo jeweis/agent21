@@ -24,7 +24,7 @@ def test_symlinked_mcp_source_cannot_escape_project(tmp_path: Path) -> None:
     (root / ".mcp.json").symlink_to(sentinel)
 
     with pytest.raises(BoundaryError):
-        sync_project(root, available_agents={"cursor": True})
+        sync_project(root)
 
     assert sentinel.read_bytes() == payload
     assert not (root / ".cursor/mcp.json").exists()

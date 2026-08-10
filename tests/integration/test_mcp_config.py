@@ -20,7 +20,7 @@ def test_invalid_mcp_source_fails_before_adapter_outputs(tmp_path: Path) -> None
     (tmp_path / ".mcp.json").write_text('{"token":"fixture-secret-token"', encoding="utf-8")
 
     with pytest.raises(McpConfigError) as failure:
-        sync_project(tmp_path, available_agents={"codex": True, "cursor": True})
+        sync_project(tmp_path)
 
     assert "fixture-secret-token" not in str(failure.value)
     assert not (tmp_path / ".codex/config.toml").exists()

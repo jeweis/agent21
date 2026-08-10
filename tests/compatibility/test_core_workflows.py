@@ -22,9 +22,9 @@ def test_core_workflow_handles_project_path_with_spaces(tmp_path: Path) -> None:
     source.mkdir(parents=True)
     (source / "SKILL.md").write_text("# Demo\n", encoding="utf-8")
     install_skill(root, "source/demo")
-    sync_project(root, available_agents={"claude": True})
+    sync_project(root)
 
     assert not has_blocked(diagnose_project(root))
     remove_skill(root, "demo")
-    sync_project(root, available_agents={"claude": True})
+    sync_project(root)
     assert not has_blocked(diagnose_project(root))
