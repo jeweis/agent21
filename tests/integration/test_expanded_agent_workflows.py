@@ -12,6 +12,55 @@ from agent21.sync import sync_project
 
 pytestmark = pytest.mark.integration
 
+ALL_AGENTS = ("claude", "codex", "cursor", "opencode", "pi", "workbuddy", "qoder")
+
+
+def test_all_seven_agents_sync_in_one_transaction(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """启用全部七个 Agent 时，一次 sync 产出各自权威目标且无冲突、无跳过。"""
+
+    initialize_project(tmp_path, agents=ALL_AGENTS, mode="copy", assume_yes=True)
+    (tmp_path / ".mcp.json").write_text(
+        '{"mcpServers":{"demo":{"command":"npx","args":["-y","demo"]}}}\n', encoding="utf-8"
+    )
+    monkeypatch.setattr("agent21.sync.executable_available", lambda command: True)
+
+    result = sync_project(tmp_path, available_agents={agent: True for agent in ALL_AGENTS})
+
+    assert result.conflicts == []
+    assert result.skipped == []
+    for target in ("CLAUDE.md", ".codex/config.toml", ".cursor/mcp.json", "opencode.json"):
+        assert (tmp_path / target).is_file()
+    for target in (".claude/skills", ".codebuddy/skills", ".qoder/skills"):
+        assert (tmp_path / target).is_dir()
+    assert not (tmp_path / ".pi").exists()
+
+
+@pytest.mark.parametrize(
+    ("agent", "target_dir"),
+    [
+        ("claude", ".claude/skills"),
+        ("workbuddy", ".codebuddy/skills"),
+        ("qoder", ".qoder/skills"),
+    ],
+)
+def test_skill_content_propagates_to_mapped_directories(
+    tmp_path: Path, agent: str, target_dir: str
+) -> None:
+    """.agents/skills/<name>/SKILL.md 内容被完整映射到各 Agent 的 Skills 目录。"""
+
+    initialize_project(tmp_path, agents=(agent,), mode="copy", assume_yes=True)
+    source = tmp_path / ".agents/skills/demo"
+    source.mkdir(parents=True)
+    content = "---\nname: demo\n---\n# Demo\n"
+    (source / "SKILL.md").write_text(content, encoding="utf-8")
+
+    sync_project(tmp_path, available_agents={agent: agent != "workbuddy"})
+
+    mapped = tmp_path / target_dir / "demo" / "SKILL.md"
+    assert mapped.read_text(encoding="utf-8") == content
+
 
 def test_opencode_mcp_sync_is_idempotent(tmp_path: Path) -> None:
     """OpenCode gets one deterministic config and preserves root authority."""

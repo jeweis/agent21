@@ -80,3 +80,17 @@ def test_unavailable_agent_keeps_existing_manifest_ownership(tmp_path: Path) -> 
     assert [artifact.path for artifact in load_manifest(tmp_path).managed_artifacts] == [
         ".qoder/skills"
     ]
+
+
+@pytest.mark.integration
+def test_instruction_edit_propagates_to_claude_md(tmp_path: Path) -> None:
+    """权威 AGENTS.md 的修改会在下一次 sync 更新生成的 CLAUDE.md。"""
+
+    initialize_project(tmp_path, agents=("claude",), mode="copy", assume_yes=True)
+    sync_project(tmp_path, available_agents={"claude": True})
+    (tmp_path / "AGENTS.md").write_text("# New rules\n", encoding="utf-8")
+
+    result = sync_project(tmp_path, available_agents={"claude": True})
+
+    assert result.updated == ["CLAUDE.md"]
+    assert (tmp_path / "CLAUDE.md").read_text(encoding="utf-8") == "# New rules\n"
