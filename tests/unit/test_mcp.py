@@ -114,6 +114,30 @@ def test_opencode_json_maps_local_and_remote_servers() -> None:
     assert payload["mcp"]["remote"]["headers"]["Authorization"] == "Bearer value"
 
 
+def test_opencode_json_accepts_transport_type_metadata() -> None:
+    """Source `type` metadata (stdio/http/sse) is accepted without conflict."""
+
+    content = opencode_json(
+        {
+            "context7": {"type": "stdio", "command": "npx", "args": ["-y", "server"]},
+            "context71": {"type": "http", "url": "https://mcp.example.test"},
+        }
+    )
+    payload = json.loads(content)
+
+    assert payload["mcp"]["context7"]["type"] == "local"
+    assert payload["mcp"]["context7"]["command"] == ["npx", "-y", "server"]
+    assert payload["mcp"]["context71"]["type"] == "remote"
+    assert payload["mcp"]["context71"]["url"] == "https://mcp.example.test"
+
+
+def test_opencode_json_rejects_non_string_transport_type() -> None:
+    """Transport `type` metadata must be a non-empty string when present."""
+
+    with pytest.raises(McpConfigError, match="MCP server demo field type"):
+        opencode_json({"demo": {"command": "tool", "type": ["stdio"]}})
+
+
 @pytest.mark.parametrize(
     "server",
     [

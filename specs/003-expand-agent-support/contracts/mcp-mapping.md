@@ -62,7 +62,8 @@ Target:
 
 - 一个服务器必须恰有 `command` 或 `url`。
 - `args` 只能是字符串数组；`env`/`headers` 只能是字符串映射。
-- local 接受 `command,args,env,cwd,disabled,timeout`；remote 接受 `url,headers,disabled,timeout`。
+- local 接受 `command,args,env,cwd,disabled,timeout,type`；remote 接受 `url,headers,disabled,timeout,type`。
+- `type` 是源端的 MCP 传输类型元数据（如 `stdio`/`http`/`sse`），须为非空字符串；OpenCode 输出 `type` 仍由 `command`/`url` 决定。
 - 其他字段不得静默丢弃，错误格式为 `MCP server <name> field <field> is unsupported for OpenCode`。
 - 类型错误只报告服务器名、字段名和预期类型，不报告实际敏感值。
 - 服务器和字段按名称排序；输出 UTF-8、两个空格缩进、单个末尾换行。

@@ -65,7 +65,17 @@ def opencode_json(servers: Mapping[str, Mapping[str, Any]]) -> str:
 def _opencode_server(name: str, server: Mapping[str, Any]) -> JsonObject:
     """Validate and map one common MCP server without dropping fields."""
 
-    allowed = {"command", "args", "env", "cwd", "url", "headers", "disabled", "timeout"}
+    allowed = {
+        "command",
+        "args",
+        "env",
+        "cwd",
+        "url",
+        "headers",
+        "disabled",
+        "timeout",
+        "type",
+    }
     unknown = sorted(set(server) - allowed)
     if unknown:
         raise McpConfigError(f"MCP server {name} has unsupported field: {unknown[0]}")
@@ -73,9 +83,20 @@ def _opencode_server(name: str, server: Mapping[str, Any]) -> JsonObject:
     has_url = "url" in server
     if has_command == has_url:
         raise McpConfigError(f"MCP server {name} must define exactly one of command or url")
+    _validate_transport_type(name, server)
     result = _opencode_local(name, server) if has_command else _opencode_remote(name, server)
     _copy_opencode_options(name, server, result)
     return result
+
+
+def _validate_transport_type(name: str, server: Mapping[str, Any]) -> None:
+    """接受可选 MCP 传输类型元数据；OpenCode 输出类型仍由 command/url 决定。"""
+
+    value = server.get("type")
+    if value is None:
+        return
+    if not isinstance(value, str) or not value:
+        raise McpConfigError(f"MCP server {name} field type must be a non-empty string")
 
 
 def _opencode_local(name: str, server: Mapping[str, Any]) -> JsonObject:
