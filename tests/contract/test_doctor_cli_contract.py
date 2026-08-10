@@ -33,7 +33,7 @@ def test_doctor_uses_blocked_exit_status(tmp_path: Path, monkeypatch: pytest.Mon
 def test_doctor_healthy_project_exits_zero(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A freshly initialized project has no blocking health finding."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     monkeypatch.chdir(tmp_path)
 
     result = CliRunner().invoke(app, ["doctor"])

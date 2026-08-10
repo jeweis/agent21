@@ -18,7 +18,7 @@ def test_init_preserves_existing_authoritative_sources(tmp_path: Path) -> None:
     (tmp_path / "AGENTS.md").write_bytes(instructions)
     (tmp_path / ".mcp.json").write_bytes(mcp)
 
-    initialize_project(tmp_path, agents=("codex",), mode="auto", assume_yes=True)
+    initialize_project(tmp_path, agents=("codex",), mode="auto")
 
     assert (tmp_path / "AGENTS.md").read_bytes() == instructions
     assert (tmp_path / ".mcp.json").read_bytes() == mcp

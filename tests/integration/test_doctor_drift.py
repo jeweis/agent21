@@ -15,7 +15,7 @@ from agent21.sync import sync_project
 def test_doctor_reports_managed_drift_with_agent_and_action(tmp_path: Path) -> None:
     """A hand-edited generated file points users back to synchronization."""
 
-    initialize_project(tmp_path, agents=("claude",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("claude",), mode="copy")
     sync_project(tmp_path, available_agents={"claude": True})
     (tmp_path / "CLAUDE.md").write_text("drifted\n", encoding="utf-8")
 
@@ -35,7 +35,7 @@ def test_doctor_reports_managed_drift_with_agent_and_action(tmp_path: Path) -> N
 def test_doctor_never_echoes_mcp_secret_values(tmp_path: Path) -> None:
     """Malformed source diagnostics do not expose credential-looking values."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     secret = "fixture-secret-token"
     (tmp_path / ".mcp.json").write_text(f'{{"token":"{secret}"', encoding="utf-8")
 

@@ -15,7 +15,7 @@ from agent21.skills import install_skill
 def test_git_skill_install_excludes_repository_metadata(tmp_path: Path) -> None:
     """Git transport metadata never becomes part of the managed Skill asset."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     repository = tmp_path / "repo/demo-git"
     repository.mkdir(parents=True)
     (repository / "SKILL.md").write_text("# Demo Git\n", encoding="utf-8")
@@ -47,7 +47,7 @@ def test_git_skill_install_excludes_repository_metadata(tmp_path: Path) -> None:
 def test_invalid_git_repository_leaves_no_target(tmp_path: Path) -> None:
     """Clone or validation failure cannot leave a partially installed Skill."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
 
     with pytest.raises(ValueError, match="unable to clone"):
         install_skill(tmp_path, (tmp_path / "missing.git").as_uri())

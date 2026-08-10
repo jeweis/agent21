@@ -12,7 +12,7 @@ import json
 import os
 import shutil
 import tempfile
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Literal
@@ -52,6 +52,7 @@ class TransactionResult:
     created: tuple[Path, ...] = ()
     updated: tuple[Path, ...] = ()
     unchanged: tuple[Path, ...] = ()
+    retired: tuple[Path, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -195,16 +196,22 @@ def apply_transaction(
     artifacts: Iterable[PlannedArtifact],
     *,
     managed_paths: Iterable[Path | str],
+    retire: Iterable[Path | str] = (),
     command: str = "sync",
     manifest_writer: Callable[[], None] | None = None,
     before_replace: Callable[[Path], None] | None = None,
 ) -> TransactionResult:
-    """Apply a set of artifacts with staging, rollback, and cleanup."""
+    """Apply artifacts with staging, rollback, and cleanup.
+
+    写入的 artifacts 与 retire（托管产物回收）共享同一事务：都先备份到
+    `.agents/.tmp/<txn>/backup`、记录 journal，失败时统一回滚恢复。
+    """
 
     root = project_root.resolve()
     validated = prevalidate_artifacts(root, artifacts, managed_paths=managed_paths)
     changed = [item for item in validated if not item.unchanged]
-    if not changed:
+    retired = _resolve_retired(root, retire, managed_paths)
+    if not changed and not retired:
         return TransactionResult(unchanged=tuple(item.relative_target for item in validated))
 
     tmp_root = root / ".agents" / ".tmp"
@@ -221,6 +228,7 @@ def apply_transaction(
         journal.state = "applying"
         _write_journal(transaction_root, journal)
         _apply_staged(changed, staged, backup_root, journal, transaction_root, before_replace)
+        _apply_retired(root, retired, backup_root, journal, transaction_root, before_replace)
         if manifest_writer is not None:
             manifest_writer()
         journal.state = "committed"
@@ -235,7 +243,7 @@ def apply_transaction(
     created = tuple(item.relative_target for item in changed if not item.exists)
     updated = tuple(item.relative_target for item in changed if item.exists)
     unchanged = tuple(item.relative_target for item in validated if item.unchanged)
-    return TransactionResult(created=created, updated=updated, unchanged=unchanged)
+    return TransactionResult(created=created, updated=updated, unchanged=unchanged, retired=retired)
 
 
 def _validate_source(project_root: Path, plan: PlannedArtifact) -> Path | None:
@@ -280,6 +288,46 @@ def _existing_digest(target: Path, kind: ArtifactKind) -> str | None:
     if kind == "file" and target.is_file():
         return file_digest(target)
     return None
+
+
+def _resolve_retired(
+    project_root: Path,
+    retire: Iterable[Path | str],
+    managed_paths: Iterable[Path | str],
+) -> tuple[Path, ...]:
+    """解析需回收的托管目标，仅保留存在且属于托管集合的路径。"""
+
+    managed = {project_relative(path) for path in managed_paths}
+    resolved: list[Path] = []
+    for candidate in retire:
+        relative = project_relative(candidate)
+        if relative not in managed:
+            continue
+        target = resolve_inside_project(project_root, relative)
+        if target.exists() or target.is_symlink():
+            resolved.append(relative)
+    return tuple(resolved)
+
+
+def _apply_retired(
+    root: Path,
+    retired: Sequence[Path],
+    backup_root: Path,
+    journal: TransactionJournal,
+    transaction_root: Path,
+    before_replace: Callable[[Path], None] | None,
+) -> None:
+    """将不再托管的产物移入备份区并记录 journal，供成功提交或失败回滚。"""
+
+    for relative in sorted(retired, key=lambda item: item.as_posix()):
+        target = resolve_inside_project(root, relative)
+        if before_replace is not None:
+            before_replace(target)
+        backup = backup_root / relative
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(target), str(backup))
+        journal.entries.append(JournalEntry(target, backup, True))
+        _write_journal(transaction_root, journal)
 
 
 def _stage_artifacts(

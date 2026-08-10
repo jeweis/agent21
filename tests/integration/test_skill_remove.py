@@ -14,7 +14,7 @@ from agent21.skills import SkillConflictError, install_skill, remove_skill
 def test_remove_deletes_only_unchanged_managed_skill(tmp_path: Path) -> None:
     """Removal updates both the managed directory and manifest record."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     source = tmp_path / "source/demo"
     source.mkdir(parents=True)
     (source / "SKILL.md").write_text("# Demo\n", encoding="utf-8")
@@ -30,7 +30,7 @@ def test_remove_deletes_only_unchanged_managed_skill(tmp_path: Path) -> None:
 def test_remove_refuses_drifted_skill(tmp_path: Path) -> None:
     """Hand-edited managed Skill content is never deleted silently."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     source = tmp_path / "source/demo"
     source.mkdir(parents=True)
     (source / "SKILL.md").write_text("# Demo\n", encoding="utf-8")

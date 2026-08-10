@@ -32,7 +32,7 @@ def test_cli_help_version_and_local_project_lifecycle(tmp_path: Path) -> None:
 
     assert _run(tmp_path, "--help").returncode == 0
     assert _run(tmp_path, "--version").returncode == 0
-    initialized = _run(tmp_path, "init", "--agents", "", "--yes")
+    initialized = _run(tmp_path, "--agents", "codex")
     assert initialized.returncode == 0, initialized.stderr
     source = tmp_path / "source/demo"
     source.mkdir(parents=True)

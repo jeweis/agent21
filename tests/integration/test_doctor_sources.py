@@ -14,7 +14,7 @@ from agent21.init import initialize_project
 def test_doctor_reports_invalid_skill_and_valid_empty_mcp(tmp_path: Path) -> None:
     """Skills need SKILL.md while an empty MCP server set remains valid."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     invalid_skill = tmp_path / ".agents/skills/demo"
     invalid_skill.mkdir()
     (tmp_path / ".mcp.json").write_text('{"mcpServers": {}}\n', encoding="utf-8")

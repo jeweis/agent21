@@ -14,7 +14,7 @@ from agent21.init import initialize_project
 def test_doctor_reports_dangling_transaction_and_stale_lock(tmp_path: Path) -> None:
     """Interrupted write state is reported as blocked with a repair action."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     journal = tmp_path / ".agents/.tmp/abandoned/journal.json"
     journal.parent.mkdir(parents=True)
     journal.write_text('{"state":"applying"}\n', encoding="utf-8")
@@ -31,7 +31,7 @@ def test_doctor_reports_dangling_transaction_and_stale_lock(tmp_path: Path) -> N
 def test_doctor_results_have_stable_order(tmp_path: Path) -> None:
     """Health rows sort by check id and subject for deterministic output."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
 
     results = diagnose_project(tmp_path)
 
@@ -44,7 +44,7 @@ def test_doctor_reports_workbuddy_as_configuration_only(
 ) -> None:
     """WorkBuddy support does not depend on a guessed CLI executable."""
 
-    initialize_project(tmp_path, agents=("workbuddy",), assume_yes=True)
+    initialize_project(tmp_path, agents=("workbuddy",))
     monkeypatch.setattr("agent21.doctor.detect_agents", lambda: {"workbuddy": False})
 
     results = diagnose_project(tmp_path)
@@ -58,7 +58,7 @@ def test_doctor_reports_workbuddy_as_configuration_only(
 def test_doctor_reports_codebuddy_file_shadowing_agents_md(tmp_path: Path) -> None:
     """WorkBuddy must not claim native AGENTS.md when CODEBUDDY.md takes precedence."""
 
-    initialize_project(tmp_path, agents=("workbuddy",), assume_yes=True)
+    initialize_project(tmp_path, agents=("workbuddy",))
     (tmp_path / "CODEBUDDY.md").write_text("# User-owned instructions\n", encoding="utf-8")
 
     results = diagnose_project(tmp_path)
@@ -86,7 +86,7 @@ def test_doctor_reports_pi_adapter_without_executing_it(
 ) -> None:
     """Pi dependency diagnostics only use executable discovery."""
 
-    initialize_project(tmp_path, agents=("pi",), assume_yes=True)
+    initialize_project(tmp_path, agents=("pi",))
     (tmp_path / ".mcp.json").write_text(
         '{"mcpServers":{"demo":{"command":"demo"}}}\n', encoding="utf-8"
     )

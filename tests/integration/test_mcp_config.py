@@ -16,7 +16,7 @@ from agent21.sync import sync_project
 def test_invalid_mcp_source_fails_before_adapter_outputs(tmp_path: Path) -> None:
     """Malformed MCP JSON cannot leave partially transformed tool configuration."""
 
-    initialize_project(tmp_path, agents=("codex", "cursor"), assume_yes=True)
+    initialize_project(tmp_path, agents=("codex", "cursor"))
     (tmp_path / ".mcp.json").write_text('{"token":"fixture-secret-token"', encoding="utf-8")
 
     with pytest.raises(McpConfigError) as failure:

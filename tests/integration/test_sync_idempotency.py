@@ -16,7 +16,7 @@ from agent21.sync import sync_project
 def test_twenty_sync_runs_keep_tree_and_manifest_equivalent(tmp_path: Path) -> None:
     """Identical authoritative inputs never accumulate output or manifest drift."""
 
-    initialize_project(tmp_path, agents=("claude",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("claude",), mode="copy")
     first = sync_project(tmp_path, available_agents={"claude": True})
     assert first.created
     baseline_manifest = (tmp_path / MANIFEST_PATH).read_bytes()
@@ -46,7 +46,7 @@ def test_expanded_agents_remain_idempotent_for_twenty_syncs(
 ) -> None:
     """Every new managed-output adapter stays stable across twenty runs."""
 
-    initialize_project(tmp_path, agents=(agent,), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=(agent,), mode="copy")
     (tmp_path / ".mcp.json").write_text(
         json.dumps({"mcpServers": {"demo": {"command": "demo"}}}), encoding="utf-8"
     )

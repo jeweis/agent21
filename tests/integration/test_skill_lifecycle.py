@@ -27,7 +27,7 @@ def test_skill_commands_without_init_guide_user(
 ) -> None:
     """Every Skill command fails fast and points to init when uninitialized."""
 
-    with pytest.raises(ConfigError, match="run 'agent21 init --yes' first"):
+    with pytest.raises(ConfigError, match="run 'agent21' first"):
         call(tmp_path)
 
 
@@ -35,7 +35,7 @@ def test_skill_commands_without_init_guide_user(
 def test_local_skill_install_records_digest_and_metadata(tmp_path: Path) -> None:
     """A valid project-local Skill is copied and recorded in the manifest."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     source = tmp_path / "skill-sources/demo"
     source.mkdir(parents=True)
     (source / "SKILL.md").write_text(
@@ -56,7 +56,7 @@ def test_local_skill_install_records_digest_and_metadata(tmp_path: Path) -> None
 def test_local_skill_rejects_invalid_name_and_missing_skill_file(tmp_path: Path) -> None:
     """Invalid packages fail before the unified Skills directory changes."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     source = tmp_path / "Bad_Name"
     source.mkdir()
 
@@ -70,7 +70,7 @@ def test_local_skill_rejects_invalid_name_and_missing_skill_file(tmp_path: Path)
 def test_skill_lifecycle_rejects_duplicate_and_unmanaged_remove(tmp_path: Path) -> None:
     """Occupied installs and unknown removals never change manifest ownership."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     source = tmp_path / "source/demo"
     source.mkdir(parents=True)
     (source / "SKILL.md").write_text("# Demo\n", encoding="utf-8")
@@ -87,7 +87,7 @@ def test_skill_lifecycle_rejects_duplicate_and_unmanaged_remove(tmp_path: Path) 
 def test_skill_install_rejects_nested_symlink(tmp_path: Path) -> None:
     """Skill copies cannot dereference a nested link to project-external content."""
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
     source = tmp_path / "source/demo"
     source.mkdir(parents=True)
     (source / "SKILL.md").write_text("# Demo\n", encoding="utf-8")

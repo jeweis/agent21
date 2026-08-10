@@ -51,11 +51,9 @@ def initialize_project(
     *,
     agents: Iterable[str] | None = None,
     mode: str = "auto",
-    assume_yes: bool = False,
 ) -> InitResult:
     """Create or extend deterministic project truth sources without replacing content."""
 
-    del assume_yes
     root = root.resolve()
     root.mkdir(parents=True, exist_ok=True)
     try:
@@ -136,3 +134,19 @@ def _resolve_config(
     if config != existing:
         save_config(root, config)
     return config, False
+
+
+def disable_agents(root: Path, agents: Iterable[str]) -> None:
+    """将指定 Agent 置为禁用并写回 config；未启用的目标报错。"""
+
+    config = load_config(root)
+    for agent in agents:
+        if not config.agents[agent].enabled:
+            raise ConfigError(f"agent is not enabled: {agent}")
+    merged = {
+        name: AgentSelection(enabled=config.agents[name].enabled and name not in set(agents))
+        for name in REGISTERED_AGENTS
+    }
+    updated = replace(config, agents=merged)
+    if updated != config:
+        save_config(root, updated)

@@ -19,7 +19,7 @@ description: "Task list for CLI command redesign"
 
 **Purpose**: 确认行为变更前的基线，确保后续改动可追踪
 
-- [ ] T001 运行 `uv run pytest` 确认现有 190 项测试全绿，记录基线（任何行为变更前必须通过）
+- [X] T001 运行 `uv run pytest` 确认现有 190 项测试全绿，记录基线（任何行为变更前必须通过）
 
 **Checkpoint**: 基线确认完成
 
@@ -31,14 +31,14 @@ description: "Task list for CLI command redesign"
 
 **⚠️ CRITICAL**: 本阶段完成前，任何用户故事都不能开始。
 
-- [ ] T002 [P] 编写失败测试：`apply_transaction` 的 retire 事务删除（备份/回滚/只删托管路径）在 tests/unit/test_fs.py
-- [ ] T003 [P] 编写失败测试：`SyncResult.retired` 字段与 sync 计算 retired（旧 manifest − 本次计划 − unavailable_agents）在 tests/integration/test_sync_retirement.py
-- [ ] T004 [P] 实现 `apply_transaction` retire 参数与事务内删除逻辑（backup 到 `.agents/.tmp/<txn>/backup`、journal 记录、失败回滚）在 src/agent21/fs.py
-- [ ] T005 [P] 实现 `SyncResult.retired` 字段（默认空元组）在 src/agent21/models.py
-- [ ] T006 [US4] 移除 `--yes`/`-y` Option 与 `assume_yes` 参数及 `del assume_yes`（死参数清理）在 src/agent21/cli.py、src/agent21/init.py
-- [ ] T007 [US4] 更新所有调用 `initialize_project(..., assume_yes=True)` 的测试（tests/integration、tests/compatibility、tests/contract 等约 20 处）移除该参数
-- [ ] T008 [US4] 统一未初始化引导消息为 `run 'agent21' first` 在 src/agent21/sync.py、src/agent21/skills.py、src/agent21/doctor.py
-- [ ] T009 [US4] 编写契约测试：`--help` 不再含 `--yes`/`-y`/`init`；未初始化 `sync`/`skill` 引导含 `run 'agent21' first` 在 tests/contract/test_cli_public_surface.py
+- [X] T002 [P] 编写失败测试：`apply_transaction` 的 retire 事务删除（备份/回滚/只删托管路径）在 tests/unit/test_fs.py
+- [X] T003 [P] 编写失败测试：`SyncResult.retired` 字段与 sync 计算 retired（旧 manifest − 本次计划 − unavailable_agents）在 tests/integration/test_sync_retirement.py
+- [X] T004 [P] 实现 `apply_transaction` retire 参数与事务内删除逻辑（backup 到 `.agents/.tmp/<txn>/backup`、journal 记录、失败回滚）在 src/agent21/fs.py
+- [X] T005 [P] 实现 `SyncResult.retired` 字段（默认空元组）在 src/agent21/models.py
+- [X] T006 [US4] 移除 `--yes`/`-y` Option 与 `assume_yes` 参数及 `del assume_yes`（死参数清理）在 src/agent21/cli.py、src/agent21/init.py
+- [X] T007 [US4] 更新所有调用 `initialize_project(..., assume_yes=True)` 的测试（tests/integration、tests/compatibility、tests/contract 等约 20 处）移除该参数
+- [X] T008 [US4] 统一未初始化引导消息为 `run 'agent21' first` 在 src/agent21/sync.py、src/agent21/skills.py、src/agent21/doctor.py
+- [X] T009 [US4] 编写契约测试：`--help` 不再含 `--yes`/`-y`/`init`；未初始化 `sync`/`skill` 引导含 `run 'agent21' first` 在 tests/contract/test_cli_public_surface.py
 
 **Checkpoint**: Foundation ready - 用户故事实现可开始
 
@@ -54,17 +54,17 @@ description: "Task list for CLI command redesign"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] 契约测试：`--agents` 逗号分隔解析 + 无子命令走默认 enable + 裸 Agent 名报 `No such command` 在 tests/contract/test_cli_default_command.py
-- [ ] T011 [P] [US1] 单元测试：`parse_selection` 交互编号解析纯函数（空=全部/保持现状、非法编号、重复去重）在 tests/unit/test_selection.py
-- [ ] T012 [P] [US1] 集成测试：空目录 `agent21 --agents codex,cursor` 建立真源并生成产物 在 tests/integration/test_default_command.py
-- [ ] T013 [P] [US1] 集成测试：默认命令幂等 + 追加不误关（opencode 保持启用）在 tests/integration/test_default_command.py
+- [X] T010 [P] [US1] 契约测试：`--agents` 逗号分隔解析 + 无子命令走默认 enable + 裸 Agent 名报 `No such command` 在 tests/contract/test_cli_default_command.py
+- [X] T011 [P] [US1] 单元测试：`parse_selection` 交互编号解析纯函数（空=全部/保持现状、非法编号、重复去重）在 tests/unit/test_selection.py
+- [X] T012 [P] [US1] 集成测试：空目录 `agent21 --agents codex,cursor` 建立真源并生成产物 在 tests/integration/test_default_command.py
+- [X] T013 [P] [US1] 集成测试：默认命令幂等 + 追加不误关（opencode 保持启用）在 tests/integration/test_default_command.py
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] 重构 cli.py：`Typer(invoke_without_command=True)` + callback 用 `ctx.invoked_subcommand is None` 判断默认路径 + `--agents`/`--mode` 参数 + `enable` 显式命令 在 src/agent21/cli.py
-- [ ] T015 [P] [US1] 实现 `parse_selection` 纯函数与交互选择封装（编号列表、`[已安装]` 标记、is_tty 判断）在 src/agent21/selection.py
-- [ ] T016 [US1] 接入交互/非 TTY 路径到默认 enable：TTY 交互选择、非 TTY 报错引导 `--agents`（退出码 1）、未初始化自动建真源 在 src/agent21/cli.py
-- [ ] T017 [US1] e2e：子进程验证 `agent21 --agents codex` 真实 argv 与交互输入模拟 在 tests/e2e/test_default_command.py
+- [X] T014 [US1] 重构 cli.py：`Typer(invoke_without_command=True)` + callback 用 `ctx.invoked_subcommand is None` 判断默认路径 + `--agents`/`--mode` 参数 + `enable` 显式命令 在 src/agent21/cli.py
+- [X] T015 [P] [US1] 实现 `parse_selection` 纯函数与交互选择封装（编号列表、`[已安装]` 标记、is_tty 判断）在 src/agent21/selection.py
+- [X] T016 [US1] 接入交互/非 TTY 路径到默认 enable：TTY 交互选择、非 TTY 报错引导 `--agents`（退出码 1）、未初始化自动建真源 在 src/agent21/cli.py
+- [X] T017 [US1] e2e：子进程验证 `agent21 --agents codex` 真实 argv 与交互输入模拟 在 tests/e2e/test_default_command.py
 
 **Checkpoint**: User Story 1 独立可用（MVP）
 
@@ -78,14 +78,14 @@ description: "Task list for CLI command redesign"
 
 ### Tests for User Story 2 (REQUIRED for behavior changes) ⚠️
 
-- [ ] T018 [P] [US2] 集成测试：`disable --dry-run` 输出 would retire 清单且不写盘不改 config，与执行删除集合一致 在 tests/integration/test_disable.py
-- [ ] T019 [P] [US2] 集成测试：`disable` 事务删除只删目标 Agent 托管产物，未托管文件与其它 Agent 产物保留 在 tests/integration/test_disable.py
-- [ ] T020 [P] [US2] 集成测试：`disable` 未启用提示、漂移产物报告而非静默删、重复 disable 幂等 在 tests/integration/test_disable.py
+- [X] T018 [P] [US2] 集成测试：`disable --dry-run` 输出 would retire 清单且不写盘不改 config，与执行删除集合一致 在 tests/integration/test_disable.py
+- [X] T019 [P] [US2] 集成测试：`disable` 事务删除只删目标 Agent 托管产物，未托管文件与其它 Agent 产物保留 在 tests/integration/test_disable.py
+- [X] T020 [P] [US2] 集成测试：`disable` 未启用提示、漂移产物报告而非静默删、重复 disable 幂等 在 tests/integration/test_disable.py
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] 实现 `disable` 命令（`--agents` 逗号分隔 + `--dry-run`），dry-run 复用 sync retired 预览 在 src/agent21/cli.py
-- [ ] T022 [US2] disable 接入 config 更新（enabled=false）与 sync retired 事务删除，输出 `disabled:` 与 `retired:` 在 src/agent21/cli.py、src/agent21/sync.py
+- [X] T021 [US2] 实现 `disable` 命令（`--agents` 逗号分隔 + `--dry-run`），dry-run 复用 sync retired 预览 在 src/agent21/cli.py
+- [X] T022 [US2] disable 接入 config 更新（enabled=false）与 sync retired 事务删除，输出 `disabled:` 与 `retired:` 在 src/agent21/cli.py、src/agent21/sync.py
 
 **Checkpoint**: User Story 1 与 2 均独立可用
 
@@ -99,12 +99,12 @@ description: "Task list for CLI command redesign"
 
 ### Tests for User Story 3 (REQUIRED for behavior changes) ⚠️
 
-- [ ] T023 [P] [US3] 集成测试：`status` 状态表（启用/可用/产物三列）+ 命令只读不改文件 在 tests/integration/test_status.py
-- [ ] T024 [P] [US3] 集成测试：`status` 追加 doctor blocked 与 action、未初始化宽容提示、退出码非致命 在 tests/integration/test_status.py
+- [X] T023 [P] [US3] 集成测试：`status` 状态表（启用/可用/产物三列）+ 命令只读不改文件 在 tests/integration/test_status.py
+- [X] T024 [P] [US3] 集成测试：`status` 追加 doctor blocked 与 action、未初始化宽容提示、退出码非致命 在 tests/integration/test_status.py
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] 实现 `status` 命令：复用 detect_agents + config + manifest + diagnose_project 聚合状态，尾部追加 blocked 在 src/agent21/cli.py（超 80 行则拆 src/agent21/status.py）
+- [X] T025 [US3] 实现 `status` 命令：复用 detect_agents + config + manifest + diagnose_project 聚合状态，尾部追加 blocked 在 src/agent21/cli.py（超 80 行则拆 src/agent21/status.py）
 
 **Checkpoint**: 三个用户故事均可独立验证
 
@@ -118,14 +118,14 @@ description: "Task list for CLI command redesign"
 
 ### Tests for User Story 4 (REQUIRED for behavior changes) ⚠️
 
-- [ ] T026 [P] [US4] 契约测试：裸 Agent 名位置参数报 `No such command` 并提示 `--agents` 在 tests/contract/test_cli_default_command.py
-- [ ] T027 [P] [US4] 契约测试：`agent21 enable --agents codex` 与默认命令等价 在 tests/contract/test_cli_default_command.py
+- [X] T026 [P] [US4] 契约测试：裸 Agent 名位置参数报 `No such command` 并提示 `--agents` 在 tests/contract/test_cli_default_command.py
+- [X] T027 [P] [US4] 契约测试：`agent21 enable --agents codex` 与默认命令等价 在 tests/contract/test_cli_default_command.py
 
 ### Implementation for User Story 4
 
-- [ ] T028 [US4] 移除 `init_command` 与 `--yes` 在 src/agent21/cli.py（T006 已删参数，此处删命令）
-- [ ] T029 [US4] 迁移既有 CLI `init` 测试到新命令面：tests/contract/test_init_cli_contract.py 改 `enable`/默认命令断言、tests/e2e/test_installed_cli.py 改 `--agents`
-- [ ] T030 [US4] 更新 tests/integration/test_init_workflow.py 使 `initialize_project` 测试适配新签名（assume_yes 已移除）与 enable 合并语义断言
+- [X] T028 [US4] 移除 `init_command` 与 `--yes` 在 src/agent21/cli.py（T006 已删参数，此处删命令）
+- [X] T029 [US4] 迁移既有 CLI `init` 测试到新命令面：tests/contract/test_init_cli_contract.py 改 `enable`/默认命令断言、tests/e2e/test_installed_cli.py 改 `--agents`
+- [X] T030 [US4] 更新 tests/integration/test_init_workflow.py 使 `initialize_project` 测试适配新签名（assume_yes 已移除）与 enable 合并语义断言
 
 **Checkpoint**: 命令面干净一致
 

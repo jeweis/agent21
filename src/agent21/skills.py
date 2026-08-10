@@ -31,7 +31,7 @@ def _load_initialized_manifest(root: Path) -> Manifest:
     except ManifestError as exc:
         raise ConfigError(
             f"project not initialized: {exc}; "
-            "run 'agent21 init --yes' first, then retry this command"
+            "run 'agent21' first, then retry this command"
         ) from exc
 
 

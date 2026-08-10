@@ -59,7 +59,7 @@ def _load_config_check(root: Path, results: list[HealthCheckResult]) -> ProjectC
         config = load_config(root)
     except (Agent21Error, OSError, ValueError) as exc:
         results.append(
-            _blocked("project.config", ".agents/config.yaml", str(exc), "run agent21 init")
+            _blocked("project.config", ".agents/config.yaml", str(exc), "run 'agent21' first")
         )
         return None
     results.append(_passed("project.config", ".agents/config.yaml", "configuration is valid"))
@@ -73,7 +73,7 @@ def _load_manifest_check(root: Path, results: list[HealthCheckResult]) -> Manife
         manifest = load_manifest(root)
     except (Agent21Error, OSError, ValueError) as exc:
         results.append(
-            _blocked("project.manifest", ".agents/manifest.yaml", str(exc), "run agent21 init")
+            _blocked("project.manifest", ".agents/manifest.yaml", str(exc), "run 'agent21' first")
         )
         return None
     results.append(_passed("project.manifest", ".agents/manifest.yaml", "manifest is valid"))
@@ -137,7 +137,7 @@ def _source_checks(root: Path, config: ProjectConfig, results: list[HealthCheckR
                 "source.skills",
                 str(config.skills_source),
                 "Skills source is missing",
-                "run agent21 init",
+                "run 'agent21' first",
             )
         )
     else:

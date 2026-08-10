@@ -183,3 +183,51 @@ def test_directory_digest_is_stable_for_file_order(tmp_path: Path) -> None:
 
     assert first == directory_digest(directory)
     assert file_digest(directory / "a.txt").startswith("sha256:")
+
+
+def test_transaction_retires_managed_file(tmp_path: Path) -> None:
+    """A retired managed target is removed inside the transaction, leaving no state."""
+
+    target = tmp_path / "CLAUDE.md"
+    target.write_text("# Claude\n", encoding="utf-8")
+
+    result = apply_transaction(
+        tmp_path,
+        [],
+        managed_paths={Path("CLAUDE.md")},
+        retire=[Path("CLAUDE.md")],
+    )
+
+    assert not target.exists()
+    assert result.retired == (Path("CLAUDE.md"),)
+    assert not (tmp_path / ".agents" / ".tmp").exists()
+
+
+def test_transaction_retire_rolls_back_when_later_apply_fails(tmp_path: Path) -> None:
+    """A failed transaction restores both written and retired targets."""
+
+    target = tmp_path / "CLAUDE.md"
+    target.write_text("# Claude\n", encoding="utf-8")
+    artifact = PlannedArtifact(
+        agent="claude",
+        target=Path("AGENTS.md"),
+        kind="file",
+        mode="transform",
+        content=b"# AGENTS\n",
+    )
+
+    def interrupt(path: Path) -> None:
+        if path == target:
+            raise OSError("simulated retire interruption")
+
+    with pytest.raises(TransactionError, match="simulated retire interruption"):
+        apply_transaction(
+            tmp_path,
+            [artifact],
+            managed_paths={Path("CLAUDE.md"), Path("AGENTS.md")},
+            retire=[Path("CLAUDE.md")],
+            before_replace=interrupt,
+        )
+
+    assert target.read_text(encoding="utf-8") == "# Claude\n"
+    assert not (tmp_path / "AGENTS.md").exists()

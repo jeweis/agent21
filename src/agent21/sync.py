@@ -52,9 +52,7 @@ def sync_project(
         config = load_config(root)
         manifest = load_manifest(root)
     except Agent21Error as exc:
-        raise ConfigError(
-            f"project not initialized: {exc}; run 'agent21 init --yes' first"
-        ) from exc
+        raise ConfigError(f"project not initialized: {exc}; run 'agent21' first") from exc
     availability = dict(detect_agents() if available_agents is None else available_agents)
     mcp_path = safe_join(root, config.mcp_source)
     mcp_servers = load_mcp_config(mcp_path).servers if mcp_path.is_file() else {}
@@ -82,8 +80,15 @@ def sync_project(
         item.relative_target.as_posix() for item in validated if item.exists and not item.unchanged
     ]
     unchanged = [item.relative_target.as_posix() for item in validated if item.unchanged]
+    retired = _compute_retired(manifest.managed_artifacts, validated, unavailable_agents)
     if dry_run:
-        return SyncResult(created=created, updated=updated, unchanged=unchanged, skipped=skipped)
+        return SyncResult(
+            created=created,
+            updated=updated,
+            unchanged=unchanged,
+            retired=retired,
+            skipped=skipped,
+        )
 
     artifacts = [_managed_artifact(item.plan.agent, item, config) for item in validated]
     artifacts.extend(
@@ -100,6 +105,7 @@ def sync_project(
                 root,
                 file_plans,
                 managed_paths=managed_paths,
+                retire=retired,
                 manifest_writer=lambda: save_manifest(root, next_manifest),
             )
     except (ArtifactConflictError, LockAlreadyHeld) as exc:
@@ -108,8 +114,24 @@ def sync_project(
         created=[path.as_posix() for path in transaction.created],
         updated=[path.as_posix() for path in transaction.updated],
         unchanged=[path.as_posix() for path in transaction.unchanged],
+        retired=[path.as_posix() for path in transaction.retired],
         skipped=skipped,
     )
+
+
+def _compute_retired(
+    managed_artifacts: list[ManagedArtifact],
+    validated: tuple[ValidatedArtifact, ...],
+    unavailable_agents: set[str],
+) -> list[str]:
+    """计算需回收的托管产物：不再计划 且 不属于 executable 不可用的 Agent。"""
+
+    planned = {item.relative_target.as_posix() for item in validated}
+    return [
+        artifact.path
+        for artifact in managed_artifacts
+        if artifact.path not in planned and artifact.agent not in unavailable_agents
+    ]
 
 
 def _collect_adapter_plans(

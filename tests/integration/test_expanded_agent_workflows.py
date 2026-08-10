@@ -20,7 +20,7 @@ def test_all_seven_agents_sync_in_one_transaction(
 ) -> None:
     """启用全部七个 Agent 时，一次 sync 产出各自权威目标且无冲突、无跳过。"""
 
-    initialize_project(tmp_path, agents=ALL_AGENTS, mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=ALL_AGENTS, mode="copy")
     (tmp_path / ".mcp.json").write_text(
         '{"mcpServers":{"demo":{"command":"npx","args":["-y","demo"]}}}\n', encoding="utf-8"
     )
@@ -50,7 +50,7 @@ def test_skill_content_propagates_to_mapped_directories(
 ) -> None:
     """.agents/skills/<name>/SKILL.md 内容被完整映射到各 Agent 的 Skills 目录。"""
 
-    initialize_project(tmp_path, agents=(agent,), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=(agent,), mode="copy")
     source = tmp_path / ".agents/skills/demo"
     source.mkdir(parents=True)
     content = "---\nname: demo\n---\n# Demo\n"
@@ -65,7 +65,7 @@ def test_skill_content_propagates_to_mapped_directories(
 def test_opencode_mcp_sync_is_idempotent(tmp_path: Path) -> None:
     """OpenCode gets one deterministic config and preserves root authority."""
 
-    initialize_project(tmp_path, agents=("opencode",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("opencode",), mode="copy")
     source = {"mcpServers": {"demo": {"command": "npx", "args": ["-y", "demo"]}}}
     (tmp_path / ".mcp.json").write_text(json.dumps(source), encoding="utf-8")
 
@@ -80,7 +80,7 @@ def test_opencode_mcp_sync_is_idempotent(tmp_path: Path) -> None:
 def test_qoder_sync_maps_only_skills(tmp_path: Path) -> None:
     """Qoder keeps root instructions and MCP native while mapping Skills."""
 
-    initialize_project(tmp_path, agents=("qoder",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("qoder",), mode="copy")
 
     result = sync_project(tmp_path, available_agents={"qoder": True})
 
@@ -94,7 +94,7 @@ def test_pi_sync_reports_missing_adapter_without_writes(
 ) -> None:
     """Missing Pi MCP support is visible without installing or running code."""
 
-    initialize_project(tmp_path, agents=("pi",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("pi",), mode="copy")
     (tmp_path / ".mcp.json").write_text(
         '{"mcpServers":{"demo":{"command":"demo"}}}\n', encoding="utf-8"
     )

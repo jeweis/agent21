@@ -17,7 +17,7 @@ def test_symlinked_mcp_source_cannot_escape_project(tmp_path: Path) -> None:
     """A project path resolving to an external file is rejected before it is read."""
 
     root = tmp_path / "project"
-    initialize_project(root, agents=("cursor",), assume_yes=True)
+    initialize_project(root, agents=("cursor",))
     sentinel = tmp_path / "outside.json"
     payload = b'{"mcpServers":{}}\n'
     sentinel.write_bytes(payload)

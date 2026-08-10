@@ -16,7 +16,7 @@ from agent21.sync import sync_project
 def test_sync_dry_run_has_no_filesystem_side_effects(tmp_path: Path) -> None:
     """Dry-run reports planned targets without writing outputs or lock state."""
 
-    initialize_project(tmp_path, agents=("claude",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("claude",), mode="copy")
     before = sorted(path.relative_to(tmp_path).as_posix() for path in tmp_path.rglob("*"))
 
     result = sync_project(tmp_path, dry_run=True, available_agents={"claude": True})
@@ -32,7 +32,7 @@ def test_sync_dry_run_has_no_filesystem_side_effects(tmp_path: Path) -> None:
 def test_sync_refuses_unmanaged_target(tmp_path: Path) -> None:
     """An unmanaged target blocks the whole write transaction."""
 
-    initialize_project(tmp_path, agents=("claude",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("claude",), mode="copy")
     (tmp_path / "CLAUDE.md").write_text("user owned\n", encoding="utf-8")
 
     result = sync_project(tmp_path, available_agents={"claude": True})
@@ -45,7 +45,7 @@ def test_sync_refuses_unmanaged_target(tmp_path: Path) -> None:
 def test_sync_skips_disabled_and_missing_agents(tmp_path: Path) -> None:
     """Disabled or unavailable Agents do not cause redundant target creation."""
 
-    initialize_project(tmp_path, agents=("claude", "cursor"), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("claude", "cursor"), mode="copy")
 
     result = sync_project(tmp_path, available_agents={"claude": False, "cursor": False})
 
@@ -57,7 +57,7 @@ def test_sync_skips_disabled_and_missing_agents(tmp_path: Path) -> None:
 def test_configuration_only_workbuddy_syncs_without_executable(tmp_path: Path) -> None:
     """Explicit WorkBuddy selection writes only project `.codebuddy` outputs."""
 
-    initialize_project(tmp_path, agents=("workbuddy",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("workbuddy",), mode="copy")
 
     first = sync_project(tmp_path, available_agents={"workbuddy": False})
     second = sync_project(tmp_path, available_agents={"workbuddy": False})
@@ -72,7 +72,7 @@ def test_configuration_only_workbuddy_syncs_without_executable(tmp_path: Path) -
 def test_unavailable_agent_keeps_existing_manifest_ownership(tmp_path: Path) -> None:
     """A temporarily missing executable must not orphan managed outputs."""
 
-    initialize_project(tmp_path, agents=("qoder",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("qoder",), mode="copy")
     sync_project(tmp_path, available_agents={"qoder": True})
 
     result = sync_project(tmp_path, available_agents={"qoder": False})
@@ -87,7 +87,7 @@ def test_unavailable_agent_keeps_existing_manifest_ownership(tmp_path: Path) -> 
 def test_instruction_edit_propagates_to_claude_md(tmp_path: Path) -> None:
     """权威 AGENTS.md 的修改会在下一次 sync 更新生成的 CLAUDE.md。"""
 
-    initialize_project(tmp_path, agents=("claude",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("claude",), mode="copy")
     sync_project(tmp_path, available_agents={"claude": True})
     (tmp_path / "AGENTS.md").write_text("# New rules\n", encoding="utf-8")
 
@@ -101,5 +101,5 @@ def test_instruction_edit_propagates_to_claude_md(tmp_path: Path) -> None:
 def test_sync_without_init_guides_user_to_initialize(tmp_path: Path) -> None:
     """Sync on an uninitialized project fails fast with an actionable message."""
 
-    with pytest.raises(ConfigError, match="run 'agent21 init --yes' first"):
+    with pytest.raises(ConfigError, match="run 'agent21' first"):
         sync_project(tmp_path, available_agents={"claude": True})

@@ -17,7 +17,7 @@ def test_auto_mode_creates_project_relative_skill_link_when_supported(
     """Auto mode prefers a relative project-local link on capable filesystems."""
 
     root = tmp_path / "project with spaces"
-    initialize_project(root, agents=("claude",), mode="auto", assume_yes=True)
+    initialize_project(root, agents=("claude",), mode="auto")
     monkeypatch.setattr("agent21.sync.supports_symlink", lambda _: True)
 
     sync_project(root, available_agents={"claude": True})
@@ -34,7 +34,7 @@ def test_auto_mode_falls_back_to_copy_when_links_are_unavailable(
 ) -> None:
     """Auto mode produces an owned directory copy when link creation is unavailable."""
 
-    initialize_project(tmp_path, agents=("claude",), mode="auto", assume_yes=True)
+    initialize_project(tmp_path, agents=("claude",), mode="auto")
     (tmp_path / ".agents/skills/demo").mkdir()
     (tmp_path / ".agents/skills/demo/SKILL.md").write_text("# Demo\n", encoding="utf-8")
     monkeypatch.setattr("agent21.sync.supports_symlink", lambda _: False)

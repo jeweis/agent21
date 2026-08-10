@@ -19,7 +19,7 @@ def test_init_preserves_unknown_legacy_configuration(tmp_path: Path) -> None:
     payload = b'{"legacy":true}\n'
     legacy.write_bytes(payload)
 
-    initialize_project(tmp_path, agents=(), assume_yes=True)
+    initialize_project(tmp_path, agents=())
 
     assert legacy.read_bytes() == payload
     assert (tmp_path / ".agents/config.yaml").is_file()

@@ -17,12 +17,10 @@ from agent21.manifest import load_manifest
 def test_init_creates_authoritative_project_files(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Non-interactive initialization creates the version-controlled truth sources."""
+    """The default command non-interactively initializes truth sources for --agents."""
 
     monkeypatch.chdir(tmp_path)
-    result = CliRunner().invoke(
-        app, ["init", "--agents", "codex,cursor", "--mode", "copy", "--yes"]
-    )
+    result = CliRunner().invoke(app, ["--agents", "codex,cursor", "--mode", "copy"])
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / "AGENTS.md").is_file()
@@ -42,22 +40,21 @@ def test_init_default_selection_uses_detected_agents(
 ) -> None:
     """When no explicit list is supplied, scanner results determine enablement."""
 
-    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr("agent21.init.detect_agents", lambda: {"pi": True, "codex": False})
 
-    result = CliRunner().invoke(app, ["init", "--yes"])
+    initialize_project(tmp_path, agents=None)
 
-    assert result.exit_code == 0, result.output
     assert load_config(tmp_path).agents["pi"].enabled
+    assert not load_config(tmp_path).agents["codex"].enabled
 
 
 @pytest.mark.integration
 def test_init_appends_agents_to_existing_config(tmp_path: Path) -> None:
     """Re-running init with more agents enables them without disabling existing ones."""
 
-    initialize_project(tmp_path, agents=("opencode",), mode="auto", assume_yes=True)
+    initialize_project(tmp_path, agents=("opencode",), mode="auto")
 
-    result = initialize_project(tmp_path, agents=("opencode", "codex"), assume_yes=True)
+    result = initialize_project(tmp_path, agents=("opencode", "codex"))
 
     config = load_config(tmp_path)
     assert config.agents["opencode"].enabled
@@ -70,10 +67,10 @@ def test_init_appends_agents_to_existing_config(tmp_path: Path) -> None:
 def test_init_without_agents_keeps_existing_selection(tmp_path: Path) -> None:
     """Omitting --agents must not silently change an existing selection."""
 
-    initialize_project(tmp_path, agents=("opencode",), mode="auto", assume_yes=True)
+    initialize_project(tmp_path, agents=("opencode",), mode="auto")
     config_before = (tmp_path / ".agents/config.yaml").read_bytes()
 
-    result = initialize_project(tmp_path, assume_yes=True)
+    result = initialize_project(tmp_path)
 
     assert (tmp_path / ".agents/config.yaml").read_bytes() == config_before
     assert set(result.enabled_agents) == {"opencode"}

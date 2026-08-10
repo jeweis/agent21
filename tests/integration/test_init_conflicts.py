@@ -13,10 +13,10 @@ from agent21.init import initialize_project
 def test_repeat_init_is_byte_stable(tmp_path: Path) -> None:
     """Repeating initialization with the same inputs produces no content drift."""
 
-    initialize_project(tmp_path, agents=("codex",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("codex",), mode="copy")
     tracked = ("AGENTS.md", ".agents/config.yaml", ".agents/manifest.yaml")
     before = {path: (tmp_path / path).read_bytes() for path in tracked}
 
-    initialize_project(tmp_path, agents=("codex",), mode="copy", assume_yes=True)
+    initialize_project(tmp_path, agents=("codex",), mode="copy")
 
     assert {path: (tmp_path / path).read_bytes() for path in tracked} == before
