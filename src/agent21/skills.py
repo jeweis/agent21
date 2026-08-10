@@ -10,9 +10,10 @@ from dataclasses import replace
 from pathlib import Path, PurePath
 from urllib.parse import urlsplit, urlunsplit
 
+from agent21.errors import ConfigError, ManifestError
 from agent21.lock import ProjectLock
 from agent21.manifest import load_manifest, save_manifest
-from agent21.models import SkillRecord, SourceType, digest_path
+from agent21.models import Manifest, SkillRecord, SourceType, digest_path
 from agent21.project import safe_join
 
 SKILL_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
@@ -22,10 +23,23 @@ class SkillConflictError(ValueError):
     """Raised when Skill ownership or drift makes a write unsafe."""
 
 
+def _load_initialized_manifest(root: Path) -> Manifest:
+    """加载 manifest；项目未初始化时给出具体、可执行的引导错误。"""
+
+    try:
+        return load_manifest(root)
+    except ManifestError as exc:
+        raise ConfigError(
+            f"project not initialized: {exc}; "
+            "run 'agent21 init --yes' first, then retry this command"
+        ) from exc
+
+
 def install_skill(root: Path, source: str, *, name: str | None = None) -> SkillRecord:
     """Validate and atomically install a local or explicit Git Skill source."""
 
     root = root.resolve()
+    manifest = _load_initialized_manifest(root)
     is_git = _is_git_source(source)
     # Normalize local relative paths so Windows backslashes never reach validators.
     local_source = source if is_git else PurePath(source).as_posix()
@@ -43,7 +57,6 @@ def install_skill(root: Path, source: str, *, name: str | None = None) -> SkillR
         _validate_package(staged_source, skill_name)
         target_relative = f".agents/skills/{skill_name}"
         target = safe_join(root, target_relative)
-        manifest = load_manifest(root)
         if target.exists() or any(record.name == skill_name for record in manifest.skills):
             raise SkillConflictError(f"Skill target is already managed or occupied: {skill_name}")
         with ProjectLock(root, command="skill install"):
@@ -67,7 +80,7 @@ def install_skill(root: Path, source: str, *, name: str | None = None) -> SkillR
 def list_skills(root: Path) -> tuple[SkillRecord, ...]:
     """Return manifest-owned Skills in deterministic name order."""
 
-    return tuple(sorted(load_manifest(root).skills, key=lambda record: record.name))
+    return tuple(sorted(_load_initialized_manifest(root).skills, key=lambda record: record.name))
 
 
 def remove_skill(root: Path, name: str) -> SkillRecord:
@@ -75,7 +88,7 @@ def remove_skill(root: Path, name: str) -> SkillRecord:
 
     _validate_name(name)
     root = root.resolve()
-    manifest = load_manifest(root)
+    manifest = _load_initialized_manifest(root)
     record = next((item for item in manifest.skills if item.name == name), None)
     if record is None:
         raise SkillConflictError(f"Skill is not managed: {name}")

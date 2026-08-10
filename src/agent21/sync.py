@@ -9,6 +9,7 @@ from agent21 import __version__
 from agent21.adapters import REGISTRY, AdapterContext
 from agent21.adapters.protocol import ArtifactMode as AdapterMode
 from agent21.config import load_config
+from agent21.errors import Agent21Error, ConfigError
 from agent21.fs import (
     ArtifactConflictError,
     ValidatedArtifact,
@@ -47,8 +48,13 @@ def sync_project(
     """Plan, validate, and atomically synchronize all enabled available Agents."""
 
     root = root.resolve()
-    config = load_config(root)
-    manifest = load_manifest(root)
+    try:
+        config = load_config(root)
+        manifest = load_manifest(root)
+    except Agent21Error as exc:
+        raise ConfigError(
+            f"project not initialized: {exc}; run 'agent21 init --yes' first"
+        ) from exc
     availability = dict(detect_agents() if available_agents is None else available_agents)
     mcp_path = safe_join(root, config.mcp_source)
     mcp_servers = load_mcp_config(mcp_path).servers if mcp_path.is_file() else {}

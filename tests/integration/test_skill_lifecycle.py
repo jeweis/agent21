@@ -2,13 +2,33 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
+from agent21.config import ConfigError
 from agent21.init import initialize_project
 from agent21.manifest import load_manifest
 from agent21.skills import SkillConflictError, install_skill, list_skills, remove_skill
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda root: install_skill(root, "demo"),
+        lambda root: list_skills(root),
+        lambda root: remove_skill(root, "demo"),
+    ],
+)
+def test_skill_commands_without_init_guide_user(
+    tmp_path: Path, call: Callable[[Path], object]
+) -> None:
+    """Every Skill command fails fast and points to init when uninitialized."""
+
+    with pytest.raises(ConfigError, match="run 'agent21 init --yes' first"):
+        call(tmp_path)
 
 
 @pytest.mark.integration

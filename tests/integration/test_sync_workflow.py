@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from agent21.config import ConfigError
 from agent21.init import initialize_project
 from agent21.manifest import load_manifest
 from agent21.sync import sync_project
@@ -94,3 +95,11 @@ def test_instruction_edit_propagates_to_claude_md(tmp_path: Path) -> None:
 
     assert result.updated == ["CLAUDE.md"]
     assert (tmp_path / "CLAUDE.md").read_text(encoding="utf-8") == "# New rules\n"
+
+
+@pytest.mark.integration
+def test_sync_without_init_guides_user_to_initialize(tmp_path: Path) -> None:
+    """Sync on an uninitialized project fails fast with an actionable message."""
+
+    with pytest.raises(ConfigError, match="run 'agent21 init --yes' first"):
+        sync_project(tmp_path, available_agents={"claude": True})

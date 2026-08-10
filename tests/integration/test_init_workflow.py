@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 
 from agent21.cli import app
 from agent21.config import load_config
+from agent21.init import initialize_project
 from agent21.manifest import load_manifest
 
 
@@ -48,3 +49,31 @@ def test_init_default_selection_uses_detected_agents(
 
     assert result.exit_code == 0, result.output
     assert load_config(tmp_path).agents["pi"].enabled
+
+
+@pytest.mark.integration
+def test_init_appends_agents_to_existing_config(tmp_path: Path) -> None:
+    """Re-running init with more agents enables them without disabling existing ones."""
+
+    initialize_project(tmp_path, agents=("opencode",), mode="auto", assume_yes=True)
+
+    result = initialize_project(tmp_path, agents=("opencode", "codex"), assume_yes=True)
+
+    config = load_config(tmp_path)
+    assert config.agents["opencode"].enabled
+    assert config.agents["codex"].enabled
+    assert not config.agents["claude"].enabled
+    assert set(result.enabled_agents) == {"codex", "opencode"}
+
+
+@pytest.mark.integration
+def test_init_without_agents_keeps_existing_selection(tmp_path: Path) -> None:
+    """Omitting --agents must not silently change an existing selection."""
+
+    initialize_project(tmp_path, agents=("opencode",), mode="auto", assume_yes=True)
+    config_before = (tmp_path / ".agents/config.yaml").read_bytes()
+
+    result = initialize_project(tmp_path, assume_yes=True)
+
+    assert (tmp_path / ".agents/config.yaml").read_bytes() == config_before
+    assert set(result.enabled_agents) == {"opencode"}
