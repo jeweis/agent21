@@ -92,7 +92,7 @@ def initialize_project(
     if manifest_path.exists():
         reused.append(".agents/manifest.yaml")
     else:
-        save_manifest(root, Manifest(agent21=__version__))
+        save_manifest(root, Manifest(version=__version__))
         created.append(".agents/manifest.yaml")
 
     _ensure_agents_readme(root, created, reused)

@@ -3,17 +3,24 @@
   "title": "Agent21 Manifest v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "agent21", "managed_artifacts", "skills"],
+  "required": ["agent21"],
   "properties": {
-    "schema_version": {"const": 1},
-    "agent21": {"type": "string", "minLength": 1},
-    "managed_artifacts": {
-      "type": "array",
-      "items": {"$ref": "#/$defs/artifact"}
-    },
-    "skills": {
-      "type": "array",
-      "items": {"$ref": "#/$defs/skill"}
+    "agent21": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "version", "managed_artifacts", "skills"],
+      "properties": {
+        "schema_version": {"const": 1},
+        "version": {"type": "string", "minLength": 1},
+        "managed_artifacts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact"}
+        },
+        "skills": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/skill"}
+        }
+      }
     }
   },
   "$defs": {

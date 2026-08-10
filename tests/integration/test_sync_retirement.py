@@ -60,5 +60,8 @@ def _disable_agent(root: Path, agent: str) -> None:
 
     config_path = root / ".agents" / "config.yaml"
     config = config_path.read_text(encoding="utf-8")
-    config = config.replace(f"  {agent}:\n    enabled: true", f"  {agent}:\n    enabled: false")
+    config = config.replace(
+        f"    {agent}:\n      enabled: true",
+        f"    {agent}:\n      enabled: false",
+    )
     config_path.write_text(config, encoding="utf-8")

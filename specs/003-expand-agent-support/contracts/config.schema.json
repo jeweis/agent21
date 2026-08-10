@@ -3,38 +3,44 @@
   "title": "Agent21 Project Configuration v1 Additive Agent Expansion",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "agent21", "agents", "sync", "sources"],
+  "required": ["agent21"],
   "properties": {
-    "schema_version": {"const": 1},
-    "agent21": {"type": "string", "minLength": 1},
-    "agents": {
+    "agent21": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["claude", "codex", "cursor", "opencode", "pi"],
+      "required": ["schema_version", "agents", "sync", "sources"],
       "properties": {
-        "claude": {"$ref": "#/$defs/agentSelection"},
-        "codex": {"$ref": "#/$defs/agentSelection"},
-        "cursor": {"$ref": "#/$defs/agentSelection"},
-        "opencode": {"$ref": "#/$defs/agentSelection"},
-        "pi": {"$ref": "#/$defs/agentSelection"},
-        "workbuddy": {"$ref": "#/$defs/agentSelection"},
-        "qoder": {"$ref": "#/$defs/agentSelection"}
-      }
-    },
-    "sync": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["mode"],
-      "properties": {"mode": {"enum": ["auto", "copy", "symlink"]}}
-    },
-    "sources": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["instructions", "skills", "mcp"],
-      "properties": {
-        "instructions": {"$ref": "#/$defs/projectPath"},
-        "skills": {"$ref": "#/$defs/projectPath"},
-        "mcp": {"$ref": "#/$defs/projectPath"}
+        "schema_version": {"const": 1},
+        "agents": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["claude", "codex", "cursor", "opencode", "pi"],
+          "properties": {
+            "claude": {"$ref": "#/$defs/agentSelection"},
+            "codex": {"$ref": "#/$defs/agentSelection"},
+            "cursor": {"$ref": "#/$defs/agentSelection"},
+            "opencode": {"$ref": "#/$defs/agentSelection"},
+            "pi": {"$ref": "#/$defs/agentSelection"},
+            "workbuddy": {"$ref": "#/$defs/agentSelection"},
+            "qoder": {"$ref": "#/$defs/agentSelection"}
+          }
+        },
+        "sync": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": {"mode": {"enum": ["auto", "copy", "symlink"]}}
+        },
+        "sources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["instructions", "skills", "mcp"],
+          "properties": {
+            "instructions": {"$ref": "#/$defs/projectPath"},
+            "skills": {"$ref": "#/$defs/projectPath"},
+            "mcp": {"$ref": "#/$defs/projectPath"}
+          }
+        }
       }
     }
   },

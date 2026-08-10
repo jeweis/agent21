@@ -26,7 +26,7 @@ MANIFEST_PATH = Path(".agents/manifest.yaml")
 def empty_manifest() -> Manifest:
     """Return an empty manifest for the current Agent21 package version."""
 
-    return Manifest(agent21=__version__, managed_artifacts=[], skills=[])
+    return Manifest(version=__version__, managed_artifacts=[], skills=[])
 
 
 def load_manifest(project_root: str | Path) -> Manifest:
@@ -63,33 +63,25 @@ def artifact_is_drifted(project_root: str | Path, artifact: ManagedArtifact) -> 
 def _parse_manifest(raw: Any) -> Manifest:
     if not isinstance(raw, dict):
         raise ManifestError("manifest must be a mapping")
-    allowed = {"schema_version", "agent21", "agent21_version", "managed_artifacts", "skills"}
-    _require_fields(raw, {"schema_version", "managed_artifacts", "skills"}, allowed=allowed)
-    if raw["schema_version"] != 1:
+    if "agent21" not in raw or not isinstance(raw["agent21"], dict):
+        raise ManifestError("manifest must be an agent21 mapping")
+    body = cast(dict[str, Any], raw["agent21"])
+    _require_fields(body, {"schema_version", "version", "managed_artifacts", "skills"})
+    if body["schema_version"] != 1:
         raise ManifestError("schema_version must be 1")
     try:
         manifest = Manifest(
             schema_version=1,
-            agent21=_agent21_field(raw),
+            version=_string(body["version"], "version"),
             managed_artifacts=[
                 _parse_artifact(item)
-                for item in _sequence(raw["managed_artifacts"], "managed_artifacts")
+                for item in _sequence(body["managed_artifacts"], "managed_artifacts")
             ],
-            skills=[_parse_skill(item) for item in _sequence(raw["skills"], "skills")],
+            skills=[_parse_skill(item) for item in _sequence(body["skills"], "skills")],
         )
     except ValueError as exc:
         raise ManifestError(str(exc)) from exc
     return manifest
-
-
-def _agent21_field(raw: dict[str, Any]) -> str:
-    """返回 manifest 的 agent21 标识；兼容旧字段名 agent21_version。"""
-
-    if "agent21" in raw:
-        return _string(raw["agent21"], "agent21")
-    if "agent21_version" in raw:
-        return _string(raw["agent21_version"], "agent21_version")
-    raise ManifestError("missing field in manifest: agent21")
 
 
 def _parse_artifact(raw: Any) -> ManagedArtifact:
@@ -122,30 +114,32 @@ def _parse_skill(raw: Any) -> SkillRecord:
 
 def _manifest_to_data(manifest: Manifest) -> dict[str, Any]:
     return {
-        "schema_version": manifest.schema_version,
-        "agent21": manifest.agent21,
-        "managed_artifacts": [
-            {
-                "agent": artifact.agent,
-                "path": artifact.path,
-                "kind": artifact.kind.value,
-                "mode": artifact.mode.value,
-                "source": artifact.source,
-                "digest": artifact.digest,
-            }
-            for artifact in manifest.managed_artifacts
-        ],
-        "skills": [
-            {
-                "name": skill.name,
-                "path": skill.path,
-                "source_type": skill.source_type.value,
-                "source": skill.source,
-                "version": skill.version,
-                "digest": skill.digest,
-            }
-            for skill in manifest.skills
-        ],
+        "agent21": {
+            "schema_version": manifest.schema_version,
+            "version": manifest.version,
+            "managed_artifacts": [
+                {
+                    "agent": artifact.agent,
+                    "path": artifact.path,
+                    "kind": artifact.kind.value,
+                    "mode": artifact.mode.value,
+                    "source": artifact.source,
+                    "digest": artifact.digest,
+                }
+                for artifact in manifest.managed_artifacts
+            ],
+            "skills": [
+                {
+                    "name": skill.name,
+                    "path": skill.path,
+                    "source_type": skill.source_type.value,
+                    "source": skill.source,
+                    "version": skill.version,
+                    "digest": skill.digest,
+                }
+                for skill in manifest.skills
+            ],
+        }
     }
 
 

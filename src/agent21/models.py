@@ -164,7 +164,7 @@ class SkillRecord:
 class Manifest:
     """Validated contents of `.agents/manifest.yaml`."""
 
-    agent21: str
+    version: str
     managed_artifacts: list[ManagedArtifact] = field(default_factory=list)
     skills: list[SkillRecord] = field(default_factory=list)
     schema_version: int = SCHEMA_VERSION
@@ -172,8 +172,8 @@ class Manifest:
     def __post_init__(self) -> None:
         if self.schema_version != SCHEMA_VERSION:
             raise ValueError("schema_version must be 1")
-        if not self.agent21:
-            raise ValueError("agent21 is required")
+        if not self.version:
+            raise ValueError("version is required")
         artifact_paths = [artifact.path for artifact in self.managed_artifacts]
         skill_names = [skill.name for skill in self.skills]
         if len(set(artifact_paths)) != len(artifact_paths):
@@ -186,7 +186,7 @@ class Manifest:
 
         return Manifest(
             schema_version=self.schema_version,
-            agent21=self.agent21,
+            version=self.version,
             managed_artifacts=sorted(
                 self.managed_artifacts,
                 key=lambda artifact: (artifact.path, artifact.agent),

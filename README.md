@@ -11,6 +11,21 @@ Agent21 只管理当前项目，不修改用户的全局 Agent 配置。
 
 > 当前版本：`0.1.4`（Alpha）。建议先提交现有项目文件，再执行首次同步。
 
+## 快速开始
+
+进入需要统一配置的项目，首次运行 `agent21` 完成初始化与同步，之后每次修改配置
+只需 `agent21 sync`：
+
+```bash
+uv tool install agent21
+cd /path/to/your/project
+agent21        # 首次：初始化权威源并同步到已启用的 Agent（交互选择，或用 --agents 指定）
+agent21 sync   # 之后：修改 AGENTS.md / .agents/skills / .mcp.json 后重新同步
+```
+
+`agent21 sync` 依赖项目已初始化（存在 `.agents/config.yaml`），因此首次先运行 `agent21`
+建立权威源并同步；`agent21` 与 `agent21 sync` 构成「安装 → 用起来 → 保持同步」的最小闭环。
+
 ## 安装
 
 需要 Python 3.11 或更高版本。
@@ -37,29 +52,6 @@ python -m pip install agent21
 
 ```bash
 agent21 --version
-```
-
-## 快速开始
-
-进入需要统一配置的项目，一条命令启用并同步：
-
-```bash
-cd /path/to/your/project
-agent21 --agents claude,codex,cursor,opencode,pi,workbuddy,qoder
-```
-
-默认命令会自动创建 Agent21 配置目录、缺失的 `AGENTS.md` 和 `.agents/skills/`，启用
-指定的 Agent 并立即生成各自的配置产物。可选的 `.mcp.json` 仅在项目已经提供时使用。
-
-不指定 `--agents` 时，在交互终端会弹出全部 Agent 供你选择；非交互环境会提示你使用
-`--agents`。
-
-之后修改 `AGENTS.md`、`.agents/skills/` 或 `.mcp.json`，重新同步并检查健康状态：
-
-```bash
-agent21 sync --dry-run   # 预览
-agent21 sync
-agent21 doctor
 ```
 
 ## 常用命令

@@ -33,14 +33,14 @@ def test_default_config_matches_mvp_sources_and_agents() -> None:
 
 
 def test_load_legacy_config_disables_additive_agents(tmp_path: Path) -> None:
-    """Schema v1 projects gain new agents in a disabled state without migration."""
+    """Projects without newer agents keep them disabled (additive only)."""
 
     config = default_config()
     save_config(tmp_path, config)
     path = tmp_path / CONFIG_PATH
     text = path.read_text(encoding="utf-8")
-    text = text.replace("  qoder:\n    enabled: true\n", "")
-    text = text.replace("  workbuddy:\n    enabled: true\n", "")
+    text = text.replace("    qoder:\n      enabled: true\n", "")
+    text = text.replace("    workbuddy:\n      enabled: true\n", "")
     path.write_text(text, encoding="utf-8")
 
     loaded = load_config(tmp_path)
@@ -63,18 +63,21 @@ def test_save_config_writes_deterministic_yaml(tmp_path: Path) -> None:
     assert b"schema_version: 1\n" in first
 
 
-def test_save_config_writes_agent21_identity_field(tmp_path: Path) -> None:
-    """Config top-level carries an agent21 identity marker."""
+def test_save_config_writes_wrapped_agent21_format(tmp_path: Path) -> None:
+    """Config wraps all fields under the agent21 root key."""
 
     save_config(tmp_path, default_config())
 
     text = (tmp_path / CONFIG_PATH).read_text(encoding="utf-8")
-    assert "agent21: " in text
-    assert text.index("agent21:") < text.index("agents:")
+    assert text.startswith("agent21:")
+    assert "  schema_version: 1" in text
+    assert "  agents:" in text
+    assert "  sync:" in text
+    assert "  sources:" in text
 
 
-def test_load_config_accepts_missing_agent21_field(tmp_path: Path) -> None:
-    """Legacy config without agent21 still loads (marker is additive)."""
+def test_load_config_rejects_unwrapped_legacy_format(tmp_path: Path) -> None:
+    """Config without the agent21 wrapper is rejected (no legacy flat format)."""
 
     save_config(tmp_path, default_config())
     path = tmp_path / CONFIG_PATH
@@ -82,9 +85,8 @@ def test_load_config_accepts_missing_agent21_field(tmp_path: Path) -> None:
     text = "\n".join(line for line in text.splitlines() if not line.startswith("agent21:"))
     path.write_text(text + "\n", encoding="utf-8")
 
-    loaded = load_config(tmp_path)
-
-    assert loaded.schema_version == 1
+    with pytest.raises(ConfigError, match="agent21 mapping"):
+        load_config(tmp_path)
 
 
 def test_load_config_rejects_unknown_top_level_field(tmp_path: Path) -> None:
@@ -93,7 +95,12 @@ def test_load_config_rejects_unknown_top_level_field(tmp_path: Path) -> None:
     path = tmp_path / CONFIG_PATH
     path.parent.mkdir(parents=True)
     path.write_text(
-        "schema_version: 1\nagents: {}\nsync: {mode: auto}\nsources: {}\nextra: true\n",
+        "agent21:\n"
+        "  schema_version: 1\n"
+        "  agents: {}\n"
+        "  sync: {mode: auto}\n"
+        "  sources: {}\n"
+        "  extra: true\n",
         encoding="utf-8",
     )
 
@@ -109,18 +116,19 @@ def test_load_config_rejects_string_enabled_values(tmp_path: Path) -> None:
     path.write_text(
         "\n".join(
             [
-                "schema_version: 1",
-                "agents:",
-                "  claude: {enabled: 'true'}",
-                "  codex: {enabled: true}",
-                "  cursor: {enabled: true}",
-                "  opencode: {enabled: true}",
-                "  pi: {enabled: true}",
-                "sync: {mode: auto}",
-                "sources:",
-                "  instructions: AGENTS.md",
-                "  skills: .agents/skills",
-                "  mcp: .mcp.json",
+                "agent21:",
+                "  schema_version: 1",
+                "  agents:",
+                "    claude: {enabled: 'true'}",
+                "    codex: {enabled: true}",
+                "    cursor: {enabled: true}",
+                "    opencode: {enabled: true}",
+                "    pi: {enabled: true}",
+                "  sync: {mode: auto}",
+                "  sources:",
+                "    instructions: AGENTS.md",
+                "    skills: .agents/skills",
+                "    mcp: .mcp.json",
                 "",
             ]
         ),
@@ -139,18 +147,19 @@ def test_load_config_rejects_unsafe_source_path(tmp_path: Path) -> None:
     path.write_text(
         "\n".join(
             [
-                "schema_version: 1",
-                "agents:",
-                "  claude: {enabled: true}",
-                "  codex: {enabled: true}",
-                "  cursor: {enabled: true}",
-                "  opencode: {enabled: true}",
-                "  pi: {enabled: true}",
-                "sync: {mode: auto}",
-                "sources:",
-                "  instructions: ../AGENTS.md",
-                "  skills: .agents/skills",
-                "  mcp: .mcp.json",
+                "agent21:",
+                "  schema_version: 1",
+                "  agents:",
+                "    claude: {enabled: true}",
+                "    codex: {enabled: true}",
+                "    cursor: {enabled: true}",
+                "    opencode: {enabled: true}",
+                "    pi: {enabled: true}",
+                "  sync: {mode: auto}",
+                "  sources:",
+                "    instructions: ../AGENTS.md",
+                "    skills: .agents/skills",
+                "    mcp: .mcp.json",
                 "",
             ]
         ),
@@ -165,9 +174,19 @@ def test_load_config_rejects_unsafe_source_path(tmp_path: Path) -> None:
     ("payload", "message"),
     [
         ("[]\n", "must be a mapping"),
-        ("schema_version: 2\nagents: {}\nsync: {}\nsources: {}\n", "schema_version"),
-        ("schema_version: 1\nagents: {}\nsync: {}\nsources: {}\n", "missing field"),
-        ("schema_version: 1\nagents: []\nsync: {}\nsources: {}\n", "agents must be a mapping"),
+        (
+            "agent21:\n  schema_version: 2\n  agents: {}\n  sync: {}\n  sources: {}\n",
+            "schema_version",
+        ),
+        (
+            "agent21:\n  schema_version: 1\n  agents: {}\n  sync: {}\n  sources: {}\n",
+            "missing field",
+        ),
+        (
+            "agent21:\n  schema_version: 1\n  agents: []\n  sync: {}\n  sources: {}\n",
+            "agents must be a mapping",
+        ),
+        ("schema_version: 1\nagents: {}\n", "agent21 mapping"),
     ],
 )
 def test_load_config_rejects_malformed_structures(
