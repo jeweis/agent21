@@ -138,17 +138,28 @@ def test_opencode_json_rejects_non_string_transport_type() -> None:
         opencode_json({"demo": {"command": "tool", "type": ["stdio"]}})
 
 
+def test_opencode_json_filters_other_tool_extension_fields() -> None:
+    """Other tools' extension fields (e.g. pi-mcp-adapter directTools) are filtered."""
+
+    content = opencode_json(
+        {"context7": {"command": "npx", "args": ["-y", "server"], "directTools": True}}
+    )
+    payload = json.loads(content)
+
+    assert payload["mcp"]["context7"] == {"command": ["npx", "-y", "server"], "type": "local"}
+    assert "directTools" not in payload["mcp"]["context7"]
+
+
 @pytest.mark.parametrize(
     "server",
     [
-        {"command": "tool", "unknown": True},
         {"command": "tool", "url": "https://example.test"},
         {"command": "tool", "args": [1]},
         {"url": "https://example.test", "env": {"A": "b"}},
     ],
 )
-def test_opencode_json_rejects_unrepresentable_fields(server: dict[str, object]) -> None:
-    """Target-incompatible values fail instead of being silently discarded."""
+def test_opencode_json_rejects_structurally_conflicting_fields(server: dict[str, object]) -> None:
+    """Structurally conflicting values fail instead of being silently discarded."""
 
     with pytest.raises(McpConfigError, match="MCP server demo"):
         opencode_json({"demo": server})

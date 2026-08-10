@@ -63,22 +63,13 @@ def opencode_json(servers: Mapping[str, Mapping[str, Any]]) -> str:
 
 
 def _opencode_server(name: str, server: Mapping[str, Any]) -> JsonObject:
-    """Validate and map one common MCP server without dropping fields."""
+    """将通用 MCP server 映射为 OpenCode 视图；其他工具的私有扩展字段被过滤。
 
-    allowed = {
-        "command",
-        "args",
-        "env",
-        "cwd",
-        "url",
-        "headers",
-        "disabled",
-        "timeout",
-        "type",
-    }
-    unknown = sorted(set(server) - allowed)
-    if unknown:
-        raise McpConfigError(f"MCP server {name} has unsupported field: {unknown[0]}")
+    `.mcp.json` 是跨工具共享真源，可能包含特定工具（如 pi-mcp-adapter 的
+    `directTools`）的扩展字段。这些字段不属于 OpenCode 视图，转换时忽略，
+    但仍保留结构契约校验（command/url 恰一、类型与矛盾字段检查）。
+    """
+
     has_command = "command" in server
     has_url = "url" in server
     if has_command == has_url:

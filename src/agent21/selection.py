@@ -61,8 +61,8 @@ def render_selection_list(enabled: set[str]) -> tuple[str, tuple[str, ...]]:
             marks.append("[已启用]")
         if agent in installed:
             marks.append("[已安装]")
-        prefix = f"{' '.join(marks)} ".rstrip()
-        lines.append(f"  {prefix}{index}. {agent}")
+        suffix = f" {' '.join(marks)}" if marks else ""
+        lines.append(f"  {index}. {agent}{suffix}")
         names.append(agent)
     lines.append("选择要启用的 Agent（编号逗号分隔，留空=全部）：")
     return "\n".join(lines), tuple(names)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from agent21.selection import parse_selection
+from agent21.selection import parse_selection, render_selection_list
 
 NAMES = ("claude", "codex", "cursor", "opencode", "pi", "workbuddy", "qoder")
 
@@ -34,3 +34,14 @@ def test_parse_selection_rejects_invalid_input(text: str) -> None:
 
     with pytest.raises(ValueError, match="invalid selection"):
         parse_selection(text, NAMES)
+
+
+def test_render_selection_list_puts_markers_after_number() -> None:
+    """标记放在序号与名称之后，保持序号列对齐。"""
+
+    text, names = render_selection_list(enabled={"workbuddy"})
+
+    assert "  1. claude" in text
+    assert "  6. qoder" in text
+    assert "  7. workbuddy [已启用]" in text
+    assert names == ("claude", "codex", "cursor", "opencode", "pi", "qoder", "workbuddy")

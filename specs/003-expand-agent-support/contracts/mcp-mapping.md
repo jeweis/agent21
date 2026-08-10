@@ -64,7 +64,9 @@ Target:
 - `args` 只能是字符串数组；`env`/`headers` 只能是字符串映射。
 - local 接受 `command,args,env,cwd,disabled,timeout,type`；remote 接受 `url,headers,disabled,timeout,type`。
 - `type` 是源端的 MCP 传输类型元数据（如 `stdio`/`http`/`sse`），须为非空字符串；OpenCode 输出 `type` 仍由 `command`/`url` 决定。
-- 其他字段不得静默丢弃，错误格式为 `MCP server <name> field <field> is unsupported for OpenCode`。
+- 其他工具的私有扩展字段（如 pi-mcp-adapter 的 `directTools`）在 OpenCode 工具视图中被过滤，
+  不转写也不报错；这些字段仍保留在 `.mcp.json` 权威源中，不被静默删除。
+- 结构矛盾仍报错：`command` 与 `url` 并存、local 带 `headers`、remote 带 `args/env/cwd`、字段类型错误。
 - 类型错误只报告服务器名、字段名和预期类型，不报告实际敏感值。
 - 服务器和字段按名称排序；输出 UTF-8、两个空格缩进、单个末尾换行。
 - 空 `mcpServers` 不创建 `opencode.json`。
