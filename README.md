@@ -41,37 +41,35 @@ agent21 --version
 
 ## 快速开始
 
-进入需要统一配置的项目：
+进入需要统一配置的项目，一条命令启用并同步：
 
 ```bash
 cd /path/to/your/project
-agent21 init --agents claude,codex,cursor,opencode,pi,workbuddy,qoder --mode auto --yes
+agent21 --agents claude,codex,cursor,opencode,pi,workbuddy,qoder
 ```
 
-`init` 会创建 Agent21 配置目录、缺失的 `AGENTS.md` 和 `.agents/skills/`，并复用
-已有内容。可选的 `.mcp.json` 仅在项目已经提供时使用。
+默认命令会自动创建 Agent21 配置目录、缺失的 `AGENTS.md` 和 `.agents/skills/`，启用
+指定的 Agent 并立即生成各自的配置产物。可选的 `.mcp.json` 仅在项目已经提供时使用。
 
-随后编辑项目的权威配置，并预览同步计划：
+不指定 `--agents` 时，在交互终端会弹出全部 Agent 供你选择；非交互环境会提示你使用
+`--agents`。
 
-```bash
-agent21 sync --dry-run
-```
-
-确认计划后执行同步，再检查项目健康状态：
+之后修改 `AGENTS.md`、`.agents/skills/` 或 `.mcp.json`，重新同步并检查健康状态：
 
 ```bash
+agent21 sync --dry-run   # 预览
 agent21 sync
 agent21 doctor
 ```
-
-以后修改 `AGENTS.md`、`.agents/skills/` 或 `.mcp.json` 后，重新运行
-`agent21 sync` 即可。
 
 ## 常用命令
 
 | 命令 | 用途 |
 | --- | --- |
-| `agent21 init` | 在当前项目初始化权威配置和 manifest |
+| `agent21 [--agents A,B]` | 默认命令：启用指定 Agent 并同步（省略时交互选择） |
+| `agent21 enable --agents A,B` | 显式启用并同步（与默认命令等价） |
+| `agent21 disable --agents A,B [--dry-run]` | 禁用 Agent 并回收其托管产物 |
+| `agent21 status` | 查看每个 Agent 的启用状态、可用性与托管产物 |
 | `agent21 sync --dry-run` | 校验并预览同步计划，不写入文件 |
 | `agent21 sync` | 将权威配置同步到已启用且本机可用的 Agent |
 | `agent21 doctor` | 只读检查配置、漂移、Skills、MCP、锁和中断事务 |
@@ -80,10 +78,12 @@ agent21 doctor
 | `agent21 skill remove <name>` | 删除未被修改的托管 Skill |
 | `agent21 --help` | 查看完整命令帮助 |
 
-初始化时可以只启用团队实际使用的 Agent：
+只启用团队实际使用的 Agent，以及移除不再使用的 Agent：
 
 ```bash
-agent21 init --agents codex,cursor --mode auto --yes
+agent21 --agents codex,cursor
+agent21 disable --agents cursor --dry-run   # 先预览将删除的托管产物
+agent21 disable --agents cursor
 ```
 
 同步模式支持：
@@ -92,7 +92,7 @@ agent21 init --agents codex,cursor --mode auto --yes
 - `copy`：始终复制
 - `symlink`：始终使用符号链接
 
-初始化后也可以编辑 `.agents/config.yaml` 调整启用的 Agent、同步模式和权威源路径。
+启用状态与同步模式也可以在 `.agents/config.yaml` 中查看和调整。
 
 ## 管理项目 Skills
 

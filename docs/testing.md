@@ -36,7 +36,7 @@ uv run pytest -m snapshot
 核心产品工作流可在临时目录执行：
 
 ```bash
-agent21 init --agents claude,codex,cursor --mode copy --yes
+agent21 --agents claude,codex,cursor --mode copy
 agent21 sync --dry-run
 agent21 sync
 agent21 doctor

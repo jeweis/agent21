@@ -30,8 +30,7 @@ def _load_initialized_manifest(root: Path) -> Manifest:
         return load_manifest(root)
     except ManifestError as exc:
         raise ConfigError(
-            f"project not initialized: {exc}; "
-            "run 'agent21' first, then retry this command"
+            f"project not initialized: {exc}; run 'agent21' first, then retry this command"
         ) from exc
 
 

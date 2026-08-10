@@ -135,15 +135,15 @@ description: "Task list for CLI command redesign"
 
 **Purpose**: 文档、门禁与跨平台验证
 
-- [ ] T031 [P] 重写 README 命令表与快速开始为 `agent21`/`--agents`/`enable`/`disable`/`status`，移除 `init`/`--yes` 在 README.md
-- [ ] T032 [P] 同步 docs/ 与 specs/003 相关文档的 CLI 引用（init/--yes → 新命令面）
-- [ ] T033 运行 `uv run ruff check . && uv run ruff format --check . && uv run mypy src/agent21/`
-- [ ] T034 运行 `uv run nox -s pr`（格式、lint、mypy、快速测试、覆盖率）全绿
-- [ ] T035 运行 `uv run nox -s main`（含兼容性、快照、跨平台契约）全绿
-- [ ] T036 运行 `uv run nox -s package` 构建并干净安装，CLI 冒烟（`agent21 --help`、默认命令、disable、status）
-- [ ] T037 运行 specs/004-cli-command-redesign/quickstart.md 全部场景验证
-- [ ] T038 运行 `uv run agent21 doctor` 捕获干净或已说明的报告
-- [ ] T039 确认全部函数 ≤80 行、单文件 ≤1000 行；无死参数/未使用 import 残留
+- [X] T031 [P] 重写 README 命令表与快速开始为 `agent21`/`--agents`/`enable`/`disable`/`status`，移除 `init`/`--yes` 在 README.md
+- [X] T032 [P] 同步 docs/ 与 specs/003 相关文档的 CLI 引用（init/--yes → 新命令面）
+- [X] T033 运行 `uv run ruff check . && uv run ruff format --check . && uv run mypy src/agent21/`
+- [X] T034 运行 `uv run nox -s pr`（格式、lint、mypy、快速测试、覆盖率）全绿
+- [X] T035 运行 `uv run nox -s main`（含兼容性、快照、跨平台契约）全绿
+- [X] T036 运行 `uv run nox -s package` 构建并干净安装，CLI 冒烟（`agent21 --help`、默认命令、disable、status）
+- [X] T037 运行 specs/004-cli-command-redesign/quickstart.md 全部场景验证
+- [X] T038 运行 `uv run agent21 doctor` 捕获干净或已说明的报告
+- [X] T039 确认全部函数 ≤80 行、单文件 ≤1000 行；无死参数/未使用 import 残留
 
 ---
 

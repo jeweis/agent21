@@ -227,7 +227,7 @@ def _run_status() -> None:
         config = load_config(root)
     except ConfigError:
         typer.echo("project not initialized: run 'agent21' first")
-        raise typer.Exit()
+        raise typer.Exit() from None
     try:
         manifest = load_manifest(root)
     except Exception as exc:
@@ -288,9 +288,7 @@ def _preview_disable(root: Path, agents: tuple[str, ...]) -> None:
 
     manifest = load_manifest(root)
     retired = sorted(
-        artifact.path
-        for artifact in manifest.managed_artifacts
-        if artifact.agent in agents
+        artifact.path for artifact in manifest.managed_artifacts if artifact.agent in agents
     )
     for path in retired:
         typer.echo(f"would retire: {path}")

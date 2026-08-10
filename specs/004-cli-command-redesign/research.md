@@ -22,10 +22,11 @@
 ```python
 app = typer.Typer(invoke_without_command=True)
 
+
 @app.callback()
 def main(ctx: typer.Context, agents: Annotated[str | None, typer.Option("--agents")] = None):
     if ctx.invoked_subcommand is None:
-        return _default_enable(agents)      # 无子命令 → 默认启用
+        return _default_enable(agents)  # 无子命令 → 默认启用
     # 否则子命令（sync/disable/status/...）自行处理
 ```
 

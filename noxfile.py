@@ -123,11 +123,12 @@ def _run_package(session: nox.Session) -> None:
         project = Path(temp_dir) / "smoke project"
         project.mkdir()
         subprocess.run(
-            [agent21, "init", "--agents", "", "--mode", "copy", "--yes"],
+            [agent21, "--agents", "workbuddy", "--mode", "copy"],
             cwd=project,
             check=True,
         )
         subprocess.run([agent21, "sync"], cwd=project, check=True)
+        subprocess.run([agent21, "status"], cwd=project, check=True)
         subprocess.run([agent21, "doctor"], cwd=project, check=True)
         skill_source = project / "demo-skill"
         skill_source.mkdir()

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from agent21.config import ConfigError
+from agent21.errors import ConfigError
 from agent21.init import initialize_project
 from agent21.manifest import load_manifest
 from agent21.sync import sync_project
